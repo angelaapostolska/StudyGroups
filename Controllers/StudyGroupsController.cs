@@ -7,6 +7,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using StudyGroups.DAL;
+using StudyGroups.Filters;
 using StudyGroups.Models;
 
 namespace StudyGroups.Controllers
@@ -38,7 +39,7 @@ namespace StudyGroups.Controllers
         }
 
         // GET: StudyGroups/Create
-        [Authorize(Roles = "User")]
+        [SessionAuthorize(Roles = "User")]
         public ActionResult Create()
         {
             ViewBag.SubjectID = new SelectList(db.Subjects, "SubjectID", "Title");
@@ -48,7 +49,7 @@ namespace StudyGroups.Controllers
         // POST: StudyGroups/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "User")]
+        [SessionAuthorize(Roles = "User")]
         public ActionResult Create([Bind(Include = "StudyGroupID,Name,Description,SubjectID,CreatorUserID")] StudyGroup studyGroup)
         {
             if (ModelState.IsValid)
@@ -66,7 +67,7 @@ namespace StudyGroups.Controllers
         }
 
         // GET: StudyGroups/Edit/5
-        [Authorize]
+        [SessionAuthorize]
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -94,7 +95,7 @@ namespace StudyGroups.Controllers
         // POST: StudyGroups/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
+        [SessionAuthorize]
         public ActionResult Edit([Bind(Include = "StudyGroupID,Name,Description,SubjectID,CreatorUserID")] StudyGroup studyGroup)
         {
             //verify ownership
@@ -114,6 +115,7 @@ namespace StudyGroups.Controllers
 
             if (ModelState.IsValid)
             {
+                studyGroup.CreatorUserID = originalGroup.CreatorUserID;
                 db.Entry(studyGroup).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -123,7 +125,7 @@ namespace StudyGroups.Controllers
         }
 
         // GET: StudyGroups/Delete/5
-        [Authorize]
+        [SessionAuthorize]
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -149,7 +151,7 @@ namespace StudyGroups.Controllers
         }
 
         // POST: StudyGroups/Delete/5
-        [Authorize]
+        [SessionAuthorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)

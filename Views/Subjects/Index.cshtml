@@ -1,14 +1,17 @@
 ﻿@model IEnumerable<StudyGroups.Models.Subject>
-
 @{
     ViewBag.Title = "Index";
+    bool isAdmin = Session["UserRole"] != null && Session["UserRole"].ToString() == "Admin";
+}
+<h2>Subjects</h2>
+
+@if (isAdmin)
+{
+    <p>
+        @Html.ActionLink("Create New", "Create", null, new { @class = "btn btn-primary" })
+    </p>
 }
 
-<h2>Index</h2>
-
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
 <table class="table">
     <tr>
         <th>
@@ -17,23 +20,25 @@
         <th>
             @Html.DisplayNameFor(model => model.Description)
         </th>
-        <th></th>
+        <th>Actions</th>
     </tr>
-
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Title)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Description)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.SubjectID }) |
-            @Html.ActionLink("Details", "Details", new { id=item.SubjectID }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.SubjectID })
-        </td>
-    </tr>
-}
-
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.ActionLink("Details", "Details", new { id = item.SubjectID })
+                @if (isAdmin)
+                {
+                    @:| @Html.ActionLink("Edit", "Edit", new { id = item.SubjectID })
+                    @:| @Html.ActionLink("Delete", "Delete", new { id = item.SubjectID })
+                }
+            </td>
+        </tr>
+    }
 </table>

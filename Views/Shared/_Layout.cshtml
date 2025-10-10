@@ -1,45 +1,57 @@
-﻿<!DOCTYPE html>
+﻿@{
+    bool IsAdmin()
+    {
+        return Session["UserRole"] != null && Session["UserRole"].ToString() == "Admin";
+    }
+
+    bool IsLoggedIn()
+    {
+        return Session["UserID"] != null;
+    }
+}
+
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <title>@ViewBag.Title - Study Groups Management</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
     <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
         <div class="container">
-            @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            @Html.ActionLink("Study Groups", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation" aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
                 <ul class="navbar-nav flex-grow-1">
-                    <li>@Html.ActionLink("Subjects", "Index", "Subjects", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Study Groups", "Index", "StudyGroups", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Sessions", "Index", "Sessions", new { area = "" }, new { @class = "nav-link" })</li>
-                </ul>
-
-
-                @{
-                    var userId = Session["UserID"];
-                    var userName = Session["UserName"] as string;
-                }
-
-                <ul class="navbar-nav">
-                    @if (userId != null)
+                    @if (!IsLoggedIn())
                     {
-                        <li class="nav-item">
-                            <span class="navbar-text text-light">Hello, @userName!</span>
-                        </li>
-                        <li class="nav-item">
-                            @Html.ActionLink("Logout", "Logout", "Account", new { area = "" }, new { @class = "nav-link" })
-                        </li>
+                        <!-- Not logged in - no navigation links -->
+                    }
+                    else if (IsAdmin())
+                    {
+                        <!-- Admin navigation - only Users and Subjects -->
+                        <li class="nav-item">@Html.ActionLink("Users", "Index", "Users", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li class="nav-item">@Html.ActionLink("Subjects", "Index", "Subjects", new { area = "" }, new { @class = "nav-link" })</li>
                     }
                     else
                     {
+                        <!-- Regular user navigation - all options -->
+                        <li class="nav-item">@Html.ActionLink("Subjects", "Index", "Subjects", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li class="nav-item">@Html.ActionLink("Study Groups", "Index", "StudyGroups", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li class="nav-item">@Html.ActionLink("Sessions", "Index", "Sessions", new { area = "" }, new { @class = "nav-link" })</li>
+                    }
+                </ul>
+
+                <ul class="navbar-nav d-flex align-items-center">
+                    @if (!IsLoggedIn())
+                    {
+                        <!-- Not logged in - show Login and Register -->
                         <li class="nav-item">
                             @Html.ActionLink("Login", "Login", "Account", new { area = "" }, new { @class = "nav-link" })
                         </li>
@@ -47,8 +59,17 @@
                             @Html.ActionLink("Register", "Register", "Account", new { area = "" }, new { @class = "nav-link" })
                         </li>
                     }
+                    else
+                    {
+                        <!-- Logged in (both admin and user) - show username and logout -->
+                        <li class="nav-item d-flex align-items-center">
+                            <span class="text-light me-3" style="margin-bottom: 0;">Hello, @Session["Username"]!</span>
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Logout", "Logout", "Account", new { area = "" }, new { @class = "nav-link" })
+                        </li>
+                    }
                 </ul>
-
             </div>
         </div>
     </nav>
@@ -56,10 +77,9 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+            <p>&copy; @DateTime.Now.Year - Study Groups Management</p>
         </footer>
     </div>
-
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)

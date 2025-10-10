@@ -1,11 +1,9 @@
 ﻿@model StudyGroups.Models.Subject
-
 @{
     ViewBag.Title = "Details";
+    bool isAdmin = Session["UserRole"] != null && Session["UserRole"].ToString() == "Admin";
 }
-
 <h2>Details</h2>
-
 <div>
     <h4>Subject</h4>
     <hr />
@@ -13,22 +11,22 @@
         <dt>
             @Html.DisplayNameFor(model => model.Title)
         </dt>
-
         <dd>
             @Html.DisplayFor(model => model.Title)
         </dd>
-
         <dt>
             @Html.DisplayNameFor(model => model.Description)
         </dt>
-
         <dd>
             @Html.DisplayFor(model => model.Description)
         </dd>
-
     </dl>
 </div>
 <p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.SubjectID }) |
+    @if (isAdmin)
+    {
+        @Html.ActionLink("Edit", "Edit", new { id = Model.SubjectID })
+        @:|
+    }
     @Html.ActionLink("Back to List", "Index")
 </p>

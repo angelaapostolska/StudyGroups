@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using StudyGroups.DAL;
 using StudyGroups.Models;
+using StudyGroups.Filters; // ADD THIS LINE
 
 namespace StudyGroups.Controllers
 {
@@ -38,74 +39,74 @@ namespace StudyGroups.Controllers
         }
 
         // GET: Sessions/Create
-        [Authorize(Roles = "User")]
+        [SessionAuthorize(Roles = "User")]
         public ActionResult Create()
         {
-            //study groups created by the user only
-            int currentUserID = (int)Session["UserID"];
+            // Study groups created by the user only - name conflict with session
+            int currentUserID = (int)System.Web.HttpContext.Current.Session["UserID"];
             ViewBag.StudyGroupID = new SelectList(
                 db.StudyGroups.Where(sg => sg.CreatorUserID == currentUserID),
-                "StudyGroupUD",
+                "StudyGroupID", 
                 "Name"
-                );
+            );
             return View();
         }
 
         // POST: Sessions/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "User")]
-        public ActionResult Create([Bind(Include = "SessionID,Date,Duration,StudyGroupID,CreatorUserID")] Session session)
+        [SessionAuthorize(Roles = "User")]
+        public ActionResult Create([Bind(Include = "SessionID,Date,Duration,StudyGroupID")] Session session)
         {
             if (ModelState.IsValid)
             {
-                session.CreatorUserID = (int)Session["UserID"];
+                session.CreatorUserID = (int)System.Web.HttpContext.Current.Session["UserID"];
 
                 db.Sessions.Add(session);
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
 
-            int currentUserID = (int)Session["UserID"];
+            int currentUserID = (int)System.Web.HttpContext.Current.Session["UserID"];
             ViewBag.StudyGroupID = new SelectList(
                 db.StudyGroups.Where(sg => sg.CreatorUserID == currentUserID),
                 "StudyGroupID",
                 "Name",
                 session.StudyGroupID
-             );
+            );
 
             return View(session);
         }
 
-
         // GET: Sessions/Edit/5
-        [Authorize]
+        [SessionAuthorize]
         public ActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
+
             Session session = db.Sessions.Find(id);
             if (session == null)
             {
                 return HttpNotFound();
             }
 
-            // check if the current logged in user is the creator
-            int currentUserID = (int)Session["UserID"];
+            //  only the creator can edit
+            int currentUserID = (int)System.Web.HttpContext.Current.Session["UserID"];
             if (session.CreatorUserID != currentUserID)
             {
-                TempData["Error"] = "You can only edit sessions you created. ";
+                TempData["Error"] = "You can only edit sessions you created.";
                 return RedirectToAction("Details", new { id = id });
             }
 
             ViewBag.StudyGroupID = new SelectList(
-               db.StudyGroups.Where(sg => sg.CreatorUserID == currentUserID),
-               "StudyGroupID",
-               "Name",
-               session.StudyGroupID
-           );
+                db.StudyGroups.Where(sg => sg.CreatorUserID == currentUserID),
+                "StudyGroupID",
+                "Name",
+                session.StudyGroupID
+            );
 
             return View(session);
         }
@@ -113,18 +114,18 @@ namespace StudyGroups.Controllers
         // POST: Sessions/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
+        [SessionAuthorize]
         public ActionResult Edit([Bind(Include = "SessionID,Date,Duration,StudyGroupID,CreatorUserID")] Session session)
         {
-            int currentUserId = (int)Session["UserID"];
-            var originalSession = db.Sessions.FirstOrDefault(s => s.SessionID == session.SessionID);
+            int currentUserID = (int)System.Web.HttpContext.Current.Session["UserID"];
+            var originalSession = db.Sessions.AsNoTracking().FirstOrDefault(s => s.SessionID == session.SessionID);
 
             if (originalSession == null)
             {
                 return HttpNotFound();
             }
 
-            if (originalSession.CreatorUserID != currentUserId)
+            if (originalSession.CreatorUserID != currentUserID)
             {
                 TempData["Error"] = "You can only edit sessions you created.";
                 return RedirectToAction("Index");
@@ -132,13 +133,15 @@ namespace StudyGroups.Controllers
 
             if (ModelState.IsValid)
             {
+                session.CreatorUserID = originalSession.CreatorUserID;
+
                 db.Entry(session).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
 
             ViewBag.StudyGroupID = new SelectList(
-                db.StudyGroups.Where(sg => sg.CreatorUserID == currentUserId),
+                db.StudyGroups.Where(sg => sg.CreatorUserID == currentUserID),
                 "StudyGroupID",
                 "Name",
                 session.StudyGroupID
@@ -148,7 +151,7 @@ namespace StudyGroups.Controllers
         }
 
         // GET: Sessions/Delete/5
-        [Authorize]
+        [SessionAuthorize]
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -162,8 +165,8 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            int currentUserId = (int)Session["UserID"];
-            if (session.CreatorUserID != currentUserId)
+            int currentUserID = (int)System.Web.HttpContext.Current.Session["UserID"];
+            if (session.CreatorUserID != currentUserID)
             {
                 TempData["Error"] = "You can only delete sessions you created.";
                 return RedirectToAction("Details", new { id = id });
@@ -175,7 +178,7 @@ namespace StudyGroups.Controllers
         // POST: Sessions/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize]
+        [SessionAuthorize]
         public ActionResult DeleteConfirmed(int id)
         {
             Session session = db.Sessions.Find(id);
@@ -185,8 +188,9 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            int currentUserId = (int)Session["UserID"];
-            if (session.CreatorUserID != currentUserId)
+     
+            int currentUserID = (int)System.Web.HttpContext.Current.Session["UserID"];
+            if (session.CreatorUserID != currentUserID)
             {
                 TempData["Error"] = "You can only delete sessions you created.";
                 return RedirectToAction("Index");

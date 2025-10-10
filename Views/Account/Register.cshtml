@@ -15,7 +15,7 @@
             <h4>Create a new account</h4>
             <hr />
 
-            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
             <div class="form-group">
                 @Html.LabelFor(m => m.FirstName, new { @class = "control-label col-md-3" })
@@ -47,7 +47,7 @@
                     @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
                     @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
                     <small class="text-muted">
-                        Must be 8+ characters with uppercase, lowercase, number, and special character.
+                        Must be 8+ characters with uppercase, lowercase and a number.
                     </small>
                 </div>
             </div>

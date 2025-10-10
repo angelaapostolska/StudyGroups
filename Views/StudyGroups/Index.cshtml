@@ -1,14 +1,18 @@
 ﻿@model IEnumerable<StudyGroups.Models.StudyGroup>
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Study Groups";
 }
 
-<h2>Index</h2>
+<h2>Study Groups</h2>
 
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
+@if (Session["UserID"] != null && Session["UserRole"]?.ToString() == "User")
+{
+    <p>
+        @Html.ActionLink("Create New", "Create", null, new { @class = "btn btn-primary" })
+    </p>
+}
+
 <table class="table">
     <tr>
         <th>
@@ -26,26 +30,32 @@
         <th></th>
     </tr>
 
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Creator.FirstName)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Subject.Title)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Name)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Description)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.StudyGroupID }) |
-            @Html.ActionLink("Details", "Details", new { id=item.StudyGroupID }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.StudyGroupID })
-        </td>
-    </tr>
-}
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Creator.FirstName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Subject.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @if (Session["UserID"] != null && item.CreatorUserID == (int)Session["UserID"])
+                {
+                    @Html.ActionLink("Edit", "Edit", new { id = item.StudyGroupID })
+                    <text> | </text>
+                    @Html.ActionLink("Delete", "Delete", new { id = item.StudyGroupID })
+                    <text> | </text>
+                }
+                @Html.ActionLink("Details", "Details", new { id = item.StudyGroupID })
+            </td>
+        </tr>
+    }
 
 </table>

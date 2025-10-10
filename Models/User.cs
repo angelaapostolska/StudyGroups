@@ -31,7 +31,7 @@ namespace StudyGroups.Models
         ErrorMessage = "Password must be at least 8 characters with uppercase, lowercase, and number.")]
         public string Password { get; set; }
 
-        [Required]
+    
         public string Role { get; set; }
 
         // Study Groups

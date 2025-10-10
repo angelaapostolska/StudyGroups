@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using StudyGroups.DAL;
 using StudyGroups.Models;
+using StudyGroups.Filters;
 
 namespace StudyGroups.Controllers
 {
@@ -38,88 +39,137 @@ namespace StudyGroups.Controllers
         }
 
         // GET: Ratings/Create
+        [SessionAuthorize(Roles = "User")]
         public ActionResult Create()
         {
             ViewBag.SessionID = new SelectList(db.Sessions, "SessionID", "SessionID");
-            ViewBag.UserID = new SelectList(db.Users, "UserID", "FirstName");
             return View();
         }
 
         // POST: Ratings/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "RatingID,Score,UserID,SessionID")] Rating rating)
+        [SessionAuthorize(Roles = "User")]
+        public ActionResult Create([Bind(Include = "RatingID,Score,SessionID")] Rating rating)
         {
             if (ModelState.IsValid)
             {
+                int currentUserID = (int)Session["UserID"];
+                rating.UserID = currentUserID;
+
                 db.Ratings.Add(rating);
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
 
             ViewBag.SessionID = new SelectList(db.Sessions, "SessionID", "SessionID", rating.SessionID);
-            ViewBag.UserID = new SelectList(db.Users, "UserID", "FirstName", rating.UserID);
             return View(rating);
         }
 
         // GET: Ratings/Edit/5
+        [SessionAuthorize]
         public ActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
+
             Rating rating = db.Ratings.Find(id);
             if (rating == null)
             {
                 return HttpNotFound();
             }
+
+            int currentUserID = (int)Session["UserID"];
+            if (rating.UserID != currentUserID)
+            {
+                TempData["Error"] = "You can only edit ratings you created.";
+                return RedirectToAction("Details", new { id = id });
+            }
+
             ViewBag.SessionID = new SelectList(db.Sessions, "SessionID", "SessionID", rating.SessionID);
-            ViewBag.UserID = new SelectList(db.Users, "UserID", "FirstName", rating.UserID);
             return View(rating);
         }
 
         // POST: Ratings/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [SessionAuthorize]
         public ActionResult Edit([Bind(Include = "RatingID,Score,UserID,SessionID")] Rating rating)
         {
+            int currentUserID = (int)Session["UserID"];
+            var originalRating = db.Ratings.AsNoTracking().FirstOrDefault(r => r.RatingID == rating.RatingID);
+
+            if (originalRating == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (originalRating.UserID != currentUserID)
+            {
+                TempData["Error"] = "You can only edit ratings you created.";
+                return RedirectToAction("Index");
+            }
+
             if (ModelState.IsValid)
             {
+                rating.UserID = originalRating.UserID;
+
                 db.Entry(rating).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
+
             ViewBag.SessionID = new SelectList(db.Sessions, "SessionID", "SessionID", rating.SessionID);
-            ViewBag.UserID = new SelectList(db.Users, "UserID", "FirstName", rating.UserID);
             return View(rating);
         }
 
         // GET: Ratings/Delete/5
+        [SessionAuthorize]
         public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
+
             Rating rating = db.Ratings.Find(id);
             if (rating == null)
             {
                 return HttpNotFound();
             }
+
+            int currentUserID = (int)Session["UserID"];
+            if (rating.UserID != currentUserID)
+            {
+                TempData["Error"] = "You can only delete ratings you created.";
+                return RedirectToAction("Details", new { id = id });
+            }
+
             return View(rating);
         }
 
         // POST: Ratings/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [SessionAuthorize]
         public ActionResult DeleteConfirmed(int id)
         {
             Rating rating = db.Ratings.Find(id);
+
+            if (rating == null)
+            {
+                return HttpNotFound();
+            }
+
+            int currentUserID = (int)Session["UserID"];
+            if (rating.UserID != currentUserID)
+            {
+                TempData["Error"] = "You can only delete ratings you created.";
+                return RedirectToAction("Index");
+            }
+
             db.Ratings.Remove(rating);
             db.SaveChanges();
             return RedirectToAction("Index");
