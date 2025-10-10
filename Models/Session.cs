@@ -18,12 +18,25 @@ namespace StudyGroups.Models
         [Required]
         public int Duration { get; set; } // in minutes
 
-        // Foreign key
-        public int SubjectID { get; set; }
+        // Foreign key - which study group this session belongs to
+        [Required]
+        public int StudyGroupID { get; set; }
+
+        // Ownership
+        public int CreatorUserID { get; set; }
+
+        [ForeignKey("CreatorUserID")]
+        [InverseProperty("CreatedSessions")]
+        public virtual User Creator { get; set; }
+
+        // Attendees 
+        [InverseProperty("AttendingSessions")]
+        public virtual ICollection<User> Attendees { get; set; }
 
         // Navigation properties
-        [ForeignKey("SubjectID")]
-        public virtual Subject Subject { get; set; }
+        [ForeignKey("StudyGroupID")]
+        public virtual StudyGroup StudyGroup { get; set; }
+
         public virtual ICollection<Rating> Ratings { get; set; }
     }
 }

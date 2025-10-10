@@ -18,8 +18,7 @@ namespace StudyGroups.Controllers
         // GET: Subjects
         public ActionResult Index()
         {
-            var subjects = db.Subjects.Include(s => s.StudyGroup);
-            return View(subjects.ToList());
+            return View(db.Subjects.ToList());
         }
 
         // GET: Subjects/Details/5
@@ -38,9 +37,9 @@ namespace StudyGroups.Controllers
         }
 
         // GET: Subjects/Create
+        [Authorize(Roles = "Admin")]
         public ActionResult Create()
         {
-            ViewBag.StudyGroupID = new SelectList(db.StudyGroups, "StudyGroupID", "Name");
             return View();
         }
 
@@ -49,7 +48,8 @@ namespace StudyGroups.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "SubjectID,Title,StudyGroupID")] Subject subject)
+        [Authorize(Roles = "Admin")]
+        public ActionResult Create([Bind(Include = "SubjectID,Title,Description")] Subject subject)
         {
             if (ModelState.IsValid)
             {
@@ -58,11 +58,11 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.StudyGroupID = new SelectList(db.StudyGroups, "StudyGroupID", "Name", subject.StudyGroupID);
             return View(subject);
         }
 
         // GET: Subjects/Edit/5
+        [Authorize(Roles = "Admin")]
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -74,7 +74,6 @@ namespace StudyGroups.Controllers
             {
                 return HttpNotFound();
             }
-            ViewBag.StudyGroupID = new SelectList(db.StudyGroups, "StudyGroupID", "Name", subject.StudyGroupID);
             return View(subject);
         }
 
@@ -83,7 +82,8 @@ namespace StudyGroups.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "SubjectID,Title,StudyGroupID")] Subject subject)
+        [Authorize(Roles = "Admin")]
+        public ActionResult Edit([Bind(Include = "SubjectID,Title,Description")] Subject subject)
         {
             if (ModelState.IsValid)
             {
@@ -91,11 +91,12 @@ namespace StudyGroups.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            ViewBag.StudyGroupID = new SelectList(db.StudyGroups, "StudyGroupID", "Name", subject.StudyGroupID);
             return View(subject);
         }
+       
 
         // GET: Subjects/Delete/5
+        [Authorize(Roles = "Admin")]
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -111,6 +112,7 @@ namespace StudyGroups.Controllers
         }
 
         // POST: Subjects/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)

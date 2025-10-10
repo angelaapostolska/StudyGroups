@@ -16,12 +16,12 @@ namespace StudyGroups.Models
         [StringLength(100)]
         public string Title { get; set; }
 
-        // Foreign key
-        public int StudyGroupID { get; set; }
+        [StringLength(500)]
+        public string Description {  get; set; }
 
-        // Navigation properties
-        [ForeignKey("StudyGroupID")]
-        public virtual StudyGroup StudyGroup { get; set; }
-        public virtual ICollection<Session> Sessions { get; set; }
+     
+
+        // Navigation properties - has multiple study groups
+        public virtual ICollection<StudyGroup> StudyGroups { get; set; }
     }
 }

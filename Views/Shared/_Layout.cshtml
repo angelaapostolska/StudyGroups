@@ -17,10 +17,38 @@
             </button>
             <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
                 <ul class="navbar-nav flex-grow-1">
-                    <li>@Html.ActionLink("Home", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("About", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Contact", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+                    <li>@Html.ActionLink("Subjects", "Index", "Subjects", new { area = "" }, new { @class = "nav-link" })</li>
+                    <li>@Html.ActionLink("Study Groups", "Index", "StudyGroups", new { area = "" }, new { @class = "nav-link" })</li>
+                    <li>@Html.ActionLink("Sessions", "Index", "Sessions", new { area = "" }, new { @class = "nav-link" })</li>
                 </ul>
+
+
+                @{
+                    var userId = Session["UserID"];
+                    var userName = Session["UserName"] as string;
+                }
+
+                <ul class="navbar-nav">
+                    @if (userId != null)
+                    {
+                        <li class="nav-item">
+                            <span class="navbar-text text-light">Hello, @userName!</span>
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Logout", "Logout", "Account", new { area = "" }, new { @class = "nav-link" })
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            @Html.ActionLink("Login", "Login", "Account", new { area = "" }, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Register", "Register", "Account", new { area = "" }, new { @class = "nav-link" })
+                        </li>
+                    }
+                </ul>
+
             </div>
         </div>
     </nav>

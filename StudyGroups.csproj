@@ -127,12 +127,12 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\RatingsController.cs" />
     <Compile Include="Controllers\SessionsController.cs" />
     <Compile Include="Controllers\StudyGroupsController.cs" />
     <Compile Include="Controllers\SubjectsController.cs" />
-    <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="DAL\StudyGroupContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -140,6 +140,14 @@
     <Compile Include="Migrations\202510051049099_InitialCreate.cs" />
     <Compile Include="Migrations\202510051049099_InitialCreate.Designer.cs">
       <DependentUpon>202510051049099_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202510071250370_UpdateModelsWithOwnershipAndMembership.cs" />
+    <Compile Include="Migrations\202510071250370_UpdateModelsWithOwnershipAndMembership.Designer.cs">
+      <DependentUpon>202510071250370_UpdateModelsWithOwnershipAndMembership.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202510071313468_AddRoleToUser.cs" />
+    <Compile Include="Migrations\202510071313468_AddRoleToUser.Designer.cs">
+      <DependentUpon>202510071313468_AddRoleToUser.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Rating.cs" />
@@ -175,6 +183,7 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="README.md" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -200,11 +209,6 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
-    <Content Include="Views\Users\Create.cshtml" />
-    <Content Include="Views\Users\Delete.cshtml" />
-    <Content Include="Views\Users\Details.cshtml" />
-    <Content Include="Views\Users\Edit.cshtml" />
-    <Content Include="Views\Users\Index.cshtml" />
     <Content Include="Views\Subjects\Create.cshtml" />
     <Content Include="Views\Subjects\Delete.cshtml" />
     <Content Include="Views\Subjects\Details.cshtml" />
@@ -225,6 +229,9 @@
     <Content Include="Views\Ratings\Details.cshtml" />
     <Content Include="Views\Ratings\Edit.cshtml" />
     <Content Include="Views\Ratings\Index.cshtml" />
+    <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Account\Register.cshtml" />
+    <Content Include="Views\Shared\Unauthorized.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -259,6 +266,12 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202510051049099_InitialCreate.resx">
       <DependentUpon>202510051049099_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510071250370_UpdateModelsWithOwnershipAndMembership.resx">
+      <DependentUpon>202510071250370_UpdateModelsWithOwnershipAndMembership.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510071313468_AddRoleToUser.resx">
+      <DependentUpon>202510071313468_AddRoleToUser.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

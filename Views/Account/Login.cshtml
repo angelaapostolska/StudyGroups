@@ -1,0 +1,37 @@
+﻿@{
+    ViewBag.Title = "Login";
+}
+
+<h2>Login</h2>
+
+<div class="row">
+    <div class="col-md-4 col-md-offset-4">
+        @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { @class = "form-horizontal" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <h4>Sign in to your account</h4>
+            <hr />
+
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            <div class="form-group">
+                @Html.Label("Email", new { @class = "control-label" })
+                @Html.TextBox("email", "", new { @class = "form-control", type = "email", placeholder = "Email" })
+            </div>
+
+            <div class="form-group">
+                @Html.Label("Password", new { @class = "control-label" })
+                @Html.Password("password", "", new { @class = "form-control", placeholder = "Password" })
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </div>
+
+            <div class="text-center">
+                <p>Don't have an account? @Html.ActionLink("Register here", "Register")</p>
+            </div>
+        }
+    </div>
+</div>
