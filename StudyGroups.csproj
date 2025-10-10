@@ -133,10 +133,12 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\RatingsController.cs" />
+    <Compile Include="Controllers\SeederController.cs" />
     <Compile Include="Controllers\SessionsController.cs" />
     <Compile Include="Controllers\StudyGroupsController.cs" />
     <Compile Include="Controllers\SubjectsController.cs" />
     <Compile Include="DAL\StudyGroupContext.cs" />
+    <Compile Include="DatabaseSeeder.cs" />
     <Compile Include="Filters\SessionAuthorizeAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -240,6 +242,7 @@
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\Account\Register.cshtml" />
     <Content Include="Views\Shared\Unauthorized.cshtml" />
+    <Content Include="Views\Seeder\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

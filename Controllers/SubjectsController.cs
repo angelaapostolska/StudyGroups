@@ -16,9 +16,17 @@ namespace StudyGroups.Controllers
         private StudyGroupContext db = new StudyGroupContext();
 
         // GET: Subjects
-        public ActionResult Index()
+        public ActionResult Index(string searchString)
         {
-            return View(db.Subjects.ToList());
+            var subjects = db.Subjects.AsQueryable();
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                subjects = subjects.Where(s => s.Title.Contains(searchString) ||
+                                              s.Description.Contains(searchString));
+            }
+
+            return View(subjects.ToList());
         }
 
         // GET: Subjects/Details/5
