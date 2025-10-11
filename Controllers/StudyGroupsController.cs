@@ -185,6 +185,68 @@ namespace StudyGroups.Controllers
             return RedirectToAction("Index");
         }
 
+
+        // GET: StudyGroups/CreateForSubject/5
+        [SessionAuthorize(Roles = "User")]
+        public ActionResult CreateForSubject(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+
+            }
+
+            Subject subject = db.Subjects.Find(id);
+            if (subject == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Create a new StudyGroup with pre-filled subject 
+            var studyGroup = new StudyGroup
+            {
+                SubjectID = subject.SubjectID
+            };
+
+            // Pass the subject details to the view
+            ViewBag.SubjectTitle = subject.Title;
+            ViewBag.SubjectID = subject.SubjectID;
+            /// flag so that we can use the same create view
+            ViewBag.IsSubjectLocked = true;
+
+            return View("Create", studyGroup);
+
+        }
+
+        // POST: StudyGroups/CreateForSubject
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SessionAuthorize(Roles = "User")]
+        public ActionResult CreateForSubject([Bind(Include = "StudyGroupID,Name,Description,SubjectID")] StudyGroup studyGroup)
+        {
+            if (ModelState.IsValid)
+            {
+                // The creator is the current logged in user
+                studyGroup.CreatorUserID = (int)Session["UserID"];
+
+                db.StudyGroups.Add(studyGroup);
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+
+
+            // Reload subject info if validation fails
+            Subject subject = db.Subjects.Find(studyGroup.SubjectID);
+            if (subject != null)
+            {
+                ViewBag.SubjectTitle = subject.Title;
+                ViewBag.SubjectID = subject.SubjectID;
+                ViewBag.IsSubjectLocked = true;
+            }
+
+            return View("Create", studyGroup);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)

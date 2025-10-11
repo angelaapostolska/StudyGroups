@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = "Details";
     bool isAdmin = Session["UserRole"] != null && Session["UserRole"].ToString() == "Admin";
+    bool isUser = Session["UserRole"] != null && Session["UserRole"].ToString() == "User";
 }
 <h2>Details</h2>
 <div>
@@ -23,6 +24,11 @@
     </dl>
 </div>
 <p>
+    @if (isUser)
+    {
+        @Html.ActionLink("Create Study Group for this Subject", "CreateForSubject", "StudyGroups", new { id = Model.SubjectID }, null)
+        @:|
+    }
     @if (isAdmin)
     {
         @Html.ActionLink("Edit", "Edit", new { id = Model.SubjectID })
