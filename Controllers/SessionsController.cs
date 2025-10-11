@@ -12,6 +12,7 @@ using StudyGroups.Filters; // ADD THIS LINE
 
 namespace StudyGroups.Controllers
 {
+    [SessionAuthorize]
     public class SessionsController : Controller
     {
         private StudyGroupContext db = new StudyGroupContext();
@@ -30,11 +31,42 @@ namespace StudyGroups.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Session session = db.Sessions.Find(id);
+
+            Session session = db.Sessions
+                .Include(s => s.Creator)
+                .Include(s => s.StudyGroup)
+                .Include(s => s.Attendees)
+                .Include(s => s.Ratings)
+                .Include(s => s.Ratings.Select(r => r.User))
+                .FirstOrDefault(s => s.SessionID == id);
+
             if (session == null)
             {
                 return HttpNotFound();
             }
+
+            // calculate whether the session has ended yet
+            DateTime sessionEndTime = session.Date.AddMinutes(session.Duration);
+            ViewBag.HasSessionEnded = DateTime.Now > sessionEndTime;
+
+            // check if the logged in user can rate
+            if (System.Web.HttpContext.Current.Session["UserID"] != null)
+            {
+                int currentUserID = (int)System.Web.HttpContext.Current.Session["UserID"];
+                bool isCreator = session.CreatorUserID == currentUserID;
+
+                bool isAttendee = session.Attendees != null && session.Attendees.Any(a => a.UserID == currentUserID);
+                bool hasAlreadyRated = session.Ratings != null && session.Ratings.Any(r => r.UserID == currentUserID);
+
+                ViewBag.CanRate = (isCreator || isAttendee) && !hasAlreadyRated;
+                ViewBag.HasAlreadyRated = hasAlreadyRated;
+            }
+            else
+            {
+                ViewBag.CanRate = false;
+                ViewBag.HasAlreadyRated = false;
+            }
+
             return View(session);
         }
 
@@ -79,7 +111,6 @@ namespace StudyGroups.Controllers
         }
 
         // GET: Sessions/Edit/5
-        [SessionAuthorize]
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -114,7 +145,6 @@ namespace StudyGroups.Controllers
         // POST: Sessions/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [SessionAuthorize]
         public ActionResult Edit([Bind(Include = "SessionID,Date,Duration,StudyGroupID,CreatorUserID")] Session session)
         {
             int currentUserID = (int)System.Web.HttpContext.Current.Session["UserID"];
@@ -151,7 +181,6 @@ namespace StudyGroups.Controllers
         }
 
         // GET: Sessions/Delete/5
-        [SessionAuthorize]
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -178,7 +207,6 @@ namespace StudyGroups.Controllers
         // POST: Sessions/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [SessionAuthorize]
         public ActionResult DeleteConfirmed(int id)
         {
             Session session = db.Sessions.Find(id);

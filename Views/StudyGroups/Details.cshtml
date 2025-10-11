@@ -45,6 +45,10 @@
     </dl>
 </div>
 <p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.StudyGroupID }) |
+    @if (Session["UserID"] != null && Model.CreatorUserID == (int)Session["UserID"])
+    {
+        @Html.ActionLink("Edit", "Edit", new { id = Model.StudyGroupID })
+        <text> | </text>
+    }
     @Html.ActionLink("Back to List", "Index")
 </p>

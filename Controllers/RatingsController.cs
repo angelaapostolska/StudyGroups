@@ -9,9 +9,11 @@ using System.Web.Mvc;
 using StudyGroups.DAL;
 using StudyGroups.Models;
 using StudyGroups.Filters;
+using static System.Collections.Specialized.BitVector32;
 
 namespace StudyGroups.Controllers
 {
+    [SessionAuthorize]
     public class RatingsController : Controller
     {
         private StudyGroupContext db = new StudyGroupContext();
@@ -67,7 +69,6 @@ namespace StudyGroups.Controllers
         }
 
         // GET: Ratings/Edit/5
-        [SessionAuthorize]
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -95,7 +96,6 @@ namespace StudyGroups.Controllers
         // POST: Ratings/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [SessionAuthorize]
         public ActionResult Edit([Bind(Include = "RatingID,Score,UserID,SessionID")] Rating rating)
         {
             int currentUserID = (int)Session["UserID"];
@@ -126,7 +126,6 @@ namespace StudyGroups.Controllers
         }
 
         // GET: Ratings/Delete/5
-        [SessionAuthorize]
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -153,7 +152,6 @@ namespace StudyGroups.Controllers
         // POST: Ratings/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [SessionAuthorize]
         public ActionResult DeleteConfirmed(int id)
         {
             Rating rating = db.Ratings.Find(id);
@@ -173,6 +171,64 @@ namespace StudyGroups.Controllers
             db.Ratings.Remove(rating);
             db.SaveChanges();
             return RedirectToAction("Index");
+        }
+
+
+        // POST: Create rating from session's details
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SessionAuthorize(Roles = "User")]
+        public ActionResult CreateFromSession(int sessionId, int score)
+        {
+            int currentUserID = (int)Session["UserID"];
+
+            // verifying if the session has ended
+            var session = db.Sessions
+                .Include(s => s.Attendees)
+                .FirstOrDefault(s => s.SessionID == sessionId);
+
+            if (session == null)
+            {
+                TempData["Error"] = "Session not found.";
+                return RedirectToAction("Index", "Sessions");
+            }
+            DateTime sessionEndTime = session.Date.AddMinutes(session.Duration);
+            if (DateTime.Now <= sessionEndTime)
+            {
+                TempData["Error"] = "You can only rate a session after it has ended.";
+                return RedirectToAction("Details", "Sessions", new { id = sessionId });
+            }
+
+            // check if the logged in user is creator or attendee
+            bool isCreator = session.CreatorUserID == currentUserID;
+            bool isAttendee = session.Attendees.Any(a => a.UserID == currentUserID);
+
+            if (!isCreator && !isAttendee)
+            {
+                TempData["Error"] = "Only the creator and attendees can rate this session.";
+                return RedirectToAction("Details", "Sessions", new { id = sessionId });
+            }
+
+            // check if the logged in user has already voted
+            if (db.Ratings.Any(r => r.SessionID == sessionId && r.UserID == currentUserID))
+            {
+                TempData["Error"] = "You have already rated this session.";
+                return RedirectToAction("Details", "Sessions", new { id = sessionId });
+            }
+
+            // create the rating
+            var rating = new Rating
+            {
+                Score = score,
+                UserID = currentUserID,
+                SessionID = sessionId
+            };
+
+            db.Ratings.Add(rating);
+            db.SaveChanges();
+
+            TempData["Success"] = "Rating submitted successfully!";
+            return RedirectToAction("Details", "Sessions", new { id = sessionId });
         }
 
         protected override void Dispose(bool disposing)

@@ -8,11 +8,14 @@ using System.Web;
 using System.Web.Mvc;
 using StudyGroups.DAL;
 using StudyGroups.Models;
+using StudyGroups.Filters;
 
 namespace StudyGroups.Controllers
 {
+    [SessionAuthorize]
     public class SubjectsController : Controller
     {
+
         private StudyGroupContext db = new StudyGroupContext();
 
         // GET: Subjects
@@ -45,18 +48,16 @@ namespace StudyGroups.Controllers
         }
 
         // GET: Subjects/Create
-        [Authorize(Roles = "Admin")]
+        [SessionAuthorize(Roles = "Admin")]
         public ActionResult Create()
         {
             return View();
         }
 
         // POST: Subjects/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [SessionAuthorize(Roles = "Admin")]
         public ActionResult Create([Bind(Include = "SubjectID,Title,Description")] Subject subject)
         {
             if (ModelState.IsValid)
@@ -70,7 +71,7 @@ namespace StudyGroups.Controllers
         }
 
         // GET: Subjects/Edit/5
-        [Authorize(Roles = "Admin")]
+        [SessionAuthorize(Roles = "Admin")]
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -86,11 +87,9 @@ namespace StudyGroups.Controllers
         }
 
         // POST: Subjects/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [SessionAuthorize(Roles = "Admin")]
         public ActionResult Edit([Bind(Include = "SubjectID,Title,Description")] Subject subject)
         {
             if (ModelState.IsValid)
@@ -101,10 +100,10 @@ namespace StudyGroups.Controllers
             }
             return View(subject);
         }
-       
+
 
         // GET: Subjects/Delete/5
-        [Authorize(Roles = "Admin")]
+        [SessionAuthorize(Roles = "Admin")]
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -120,7 +119,7 @@ namespace StudyGroups.Controllers
         }
 
         // POST: Subjects/Delete/5
-        [Authorize(Roles = "Admin")]
+        [SessionAuthorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)

@@ -12,8 +12,10 @@ using StudyGroups.Models;
 
 namespace StudyGroups.Controllers
 {
+    [SessionAuthorize]
     public class StudyGroupsController : Controller
     {
+        
         private StudyGroupContext db = new StudyGroupContext();
 
         // GET: StudyGroups
@@ -67,7 +69,6 @@ namespace StudyGroups.Controllers
         }
 
         // GET: StudyGroups/Edit/5
-        [SessionAuthorize]
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -95,7 +96,6 @@ namespace StudyGroups.Controllers
         // POST: StudyGroups/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [SessionAuthorize]
         public ActionResult Edit([Bind(Include = "StudyGroupID,Name,Description,SubjectID,CreatorUserID")] StudyGroup studyGroup)
         {
             //verify ownership
@@ -125,7 +125,6 @@ namespace StudyGroups.Controllers
         }
 
         // GET: StudyGroups/Delete/5
-        [SessionAuthorize]
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -151,7 +150,6 @@ namespace StudyGroups.Controllers
         }
 
         // POST: StudyGroups/Delete/5
-        [SessionAuthorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)

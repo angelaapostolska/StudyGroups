@@ -1,11 +1,22 @@
-﻿
-@model StudyGroups.Models.Session
-
+﻿@model StudyGroups.Models.Session
 @{
     ViewBag.Title = "Details";
 }
-
 <h2>Details</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
 
 <div>
     <h4>Session</h4>
@@ -14,38 +25,129 @@
         <dt>
             @Html.DisplayNameFor(model => model.Creator.FirstName)
         </dt>
-
         <dd>
             @Html.DisplayFor(model => model.Creator.FirstName)
         </dd>
-
         <dt>
             @Html.DisplayNameFor(model => model.StudyGroup.Name)
         </dt>
-
         <dd>
             @Html.DisplayFor(model => model.StudyGroup.Name)
         </dd>
-
         <dt>
             @Html.DisplayNameFor(model => model.Date)
         </dt>
-
         <dd>
             @Html.DisplayFor(model => model.Date)
         </dd>
-
         <dt>
             @Html.DisplayNameFor(model => model.Duration)
         </dt>
-
         <dd>
-            @Html.DisplayFor(model => model.Duration)
+            @Html.DisplayFor(model => model.Duration) minutes
         </dd>
-
     </dl>
 </div>
-<p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.SessionID }) |
+
+@* Rating Section *@
+@if (ViewBag.HasSessionEnded)
+{
+    <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-radius: 5px;">
+        <h4>Rate This Session</h4>
+        <hr />
+
+        @if (Session["UserID"] == null)
+        {
+            <p class="text-muted">Please log in to rate this session.</p>
+        }
+        else if (ViewBag.HasAlreadyRated)
+        {
+            <div class="alert alert-info">
+                You have already rated this session.
+            </div>
+        }
+        else if (ViewBag.CanRate)
+        {
+            using (Html.BeginForm("CreateFromSession", "Ratings", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.Hidden("sessionId", Model.SessionID)
+
+                <div class="form-group">
+                    <label for="score">Your Rating (1-5 stars):</label>
+                    <select name="score" id="score" class="form-control" style="width: 200px;" required>
+                        <option value="">Select rating...</option>
+                        <option value="1">⭐ 1 - Poor</option>
+                        <option value="2">⭐⭐ 2 - Fair</option>
+                        <option value="3">⭐⭐⭐ 3 - Good</option>
+                        <option value="4">⭐⭐⭐⭐ 4 - Very Good</option>
+                        <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit Rating</button>
+            }
+        }
+        else
+        {
+            <div class="alert alert-warning">
+                Only the session creator and attendees can leave ratings.
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-radius: 5px;">
+        <p class="text-muted">
+            <strong>Note:</strong> Ratings can be submitted after the session ends.
+        </p>
+    </div>
+}
+
+@* Display existing ratings *@
+@if (Model.Ratings != null && Model.Ratings.Any())
+{
+    <div style="margin-top: 30px;">
+        <h4>Session Ratings</h4>
+        <hr />
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var rating in Model.Ratings)
+                {
+                    <tr>
+                        <td>@rating.User.FirstName @rating.User.LastName</td>
+                        <td>
+                            @for (int i = 0; i < rating.Score; i++)
+                            {
+                                <span>⭐</span>
+                            }
+                            <span>(@rating.Score/5)</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (Model.Ratings.Count > 0)
+        {
+            var averageRating = Model.Ratings.Average(r => r.Score);
+            <p><strong>Average Rating:</strong> @averageRating.ToString("F1") / 5.0 ⭐</p>
+        }
+    </div>
+}
+
+<p style="margin-top: 20px;">
+    @if (Session["UserID"] != null && Model.CreatorUserID == (int)Session["UserID"])
+    {
+        @Html.ActionLink("Edit", "Edit", new { id = Model.SessionID })
+        <text> | </text>
+    }
     @Html.ActionLink("Back to List", "Index")
 </p>
