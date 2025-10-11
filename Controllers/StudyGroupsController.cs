@@ -19,9 +19,20 @@ namespace StudyGroups.Controllers
         private StudyGroupContext db = new StudyGroupContext();
 
         // GET: StudyGroups
-        public ActionResult Index()
+       
+        public ActionResult Index(string searchString)
         {
             var studyGroups = db.StudyGroups.Include(s => s.Creator).Include(s => s.Subject);
+
+            System.Diagnostics.Debug.WriteLine("Search String: " + searchString);
+
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                studyGroups = studyGroups.Where(s => s.Name.Contains(searchString)
+                                                || s.Description.Contains(searchString)
+                                                || s.Subject.Title.Contains(searchString));
+            }
             return View(studyGroups.ToList());
         }
 

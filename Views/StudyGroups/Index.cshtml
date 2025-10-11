@@ -1,10 +1,29 @@
 ﻿@model IEnumerable<StudyGroups.Models.StudyGroup>
-
 @{
     ViewBag.Title = "Study Groups";
 }
-
 <h2>Study Groups</h2>
+
+<div style="margin-bottom: 20px;">
+    @using (Html.BeginForm("Index", "StudyGroups", FormMethod.Get, new { @class = "form-inline" }))
+    {
+        <div class="form-group" style="margin-right: 10px;">
+            <input type="text"
+                   name="searchString"
+                   value="@Request.QueryString["searchString"]"
+                   class="form-control"
+                   placeholder="Search by name, description, or subject..."
+                   style="width: 300px;" />
+        </div>
+        <button type="submit" class="btn btn-default">
+            <span class="glyphicon glyphicon-search"></span> Search
+        </button>
+        if (!String.IsNullOrEmpty(Request.QueryString["searchString"]))
+        {
+            @Html.ActionLink("Clear", "Index", null, new { @class = "btn btn-link" })
+        }
+    }
+</div>
 
 @if (Session["UserID"] != null && Session["UserRole"]?.ToString() == "User")
 {
@@ -29,7 +48,6 @@
         </th>
         <th></th>
     </tr>
-
     @foreach (var item in Model)
     {
         <tr>
@@ -57,5 +75,4 @@
             </td>
         </tr>
     }
-
 </table>
