@@ -2,9 +2,28 @@
 
 @{
     ViewBag.Title = "Create Session";
+    bool isStudyGroupLocked = ViewBag.IsStudyGroupLocked != null && (bool)ViewBag.IsStudyGroupLocked;
+
 }
 
 <h2>Create Session</h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+
+@if (ViewBag.StudyGroupName != null)
+{
+    <div class="alert alert-info">
+        Creating session for study group: <strong>@ViewBag.StudyGroupName</strong>
+        <br />
+        Subject: <strong>@ViewBag.SubjectTitle</strong>
+    </div>
+}
 
 @using (Html.BeginForm())
 {
@@ -34,12 +53,18 @@
         <div class="form-group">
             @Html.LabelFor(model => model.StudyGroupID, "Study Group", htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.DropDownList("StudyGroupID", null, htmlAttributes: new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.StudyGroupID, "", new { @class = "text-danger" })
+                @if (isStudyGroupLocked)
+                {
+                    <p class="form-control-static">@ViewBag.StudyGroupName</p>
+                    @Html.HiddenFor(model => model.StudyGroupID)
+                }
+                else
+                {
+                    @Html.DropDownList("StudyGroupID", null, htmlAttributes: new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.StudyGroupID, "", new { @class = "text-danger" })
+                }
             </div>
         </div>
-
-        @* DO NOT include CreatorUserID - it's set automatically in the controller *@
 
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">

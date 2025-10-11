@@ -2,6 +2,10 @@
 
 @{
     ViewBag.Title = "Details";
+    bool isLoggedIn = Session["UserID"] != null;
+    bool isCreator = isLoggedIn && Model.CreatorUserID == (int)Session["UserID"];
+    bool isMember = isLoggedIn && Model.Members != null && Model.Members.Any(m => m.UserID == (int)Session["UserID"]);
+    bool canCreateSession = isCreator || isMember;
 }
 
 <h2>Details</h2>
@@ -45,7 +49,12 @@
     </dl>
 </div>
 <p>
-    @if (Session["UserID"] != null && Model.CreatorUserID == (int)Session["UserID"])
+    @if (canCreateSession)
+    {
+        @Html.ActionLink("Create Session for this Study Group", "CreateForStudyGroup", "Sessions", new { id = Model.StudyGroupID }, null)
+        <text> | </text>
+    }
+    @if (isCreator)
     {
         @Html.ActionLink("Edit", "Edit", new { id = Model.StudyGroupID })
         <text> | </text>

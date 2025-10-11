@@ -229,6 +229,119 @@ namespace StudyGroups.Controllers
             return RedirectToAction("Index");
         }
 
+        // GET: Sessions/CreateForStudyGroup/5
+        [SessionAuthorize(Roles = "User")]
+        public ActionResult CreateForStudyGroup(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            StudyGroup studyGroup = db.StudyGroups
+                .Include(sg => sg.Subject)
+                .Include(sg => sg.Members)
+                .FirstOrDefault(sg => sg.StudyGroupID == id);
+
+            if (studyGroup == null)
+            {
+                return HttpNotFound();
+            }
+
+            // check if the current user is creator or member
+            int currentUserID = (int)Session["UserID"];
+            bool isCreator = studyGroup.CreatorUserID == currentUserID;
+            bool isMember = studyGroup.Members != null && studyGroup.Members.Any(m => m.UserID == currentUserID);
+
+            if (!isCreator && !isMember)
+            {
+                TempData["Error"] = "You must be the creator or a member of this study group to create sessions.";
+                return RedirectToAction("Details", "StudyGroups", new { id = id });
+            }
+
+            // create a new session with pre-filled study group value
+            var session = new Session
+            {
+                StudyGroupID = studyGroup.StudyGroupID
+            };
+
+            // pass the study group details to the view
+            ViewBag.StudyGroupName = studyGroup.Name;
+            ViewBag.SubjectTitle = studyGroup.Subject.Title;
+            ViewBag.StudyGroupID = studyGroup.StudyGroupID;
+            ViewBag.IsStudyGroupLocked = true;
+
+            return View("Create", session);
+        }
+
+        // POST: Sessions/CreateForStudyGroup
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [SessionAuthorize(Roles = "User")]
+        public ActionResult CreateForStudyGroup([Bind(Include = "SessionID,Date,Duration,StudyGroupID")] Session session)
+        {
+            StudyGroup studyGroup = db.StudyGroups
+               .Include(sg => sg.Subject)
+               .Include(sg => sg.Members)
+               .FirstOrDefault(sg => sg.StudyGroupID == session.StudyGroupID);
+
+            if (studyGroup == null)
+            {
+                return HttpNotFound();
+            }
+
+            int currentUserID = (int)Session["UserID"];
+            bool isCreator = studyGroup.CreatorUserID == currentUserID;
+            bool isMember = studyGroup.Members != null && studyGroup.Members.Any(m => m.UserID == currentUserID);
+
+            if (!isCreator && !isMember)
+            {
+                TempData["Error"] = "You must be the creator or a member of this study group to create sessions.";
+                return RedirectToAction("Details", "StudyGroups", new { id = session.StudyGroupID });
+            }
+
+            // validation check for time overlapping between sessions
+            DateTime sessionEndTime = session.Date.AddMinutes(session.Duration);
+
+            var existingSessions = db.Sessions
+                .Where(s => s.StudyGroupID == session.StudyGroupID)
+                .ToList();
+
+            bool isOverlapping = existingSessions.Any(s =>
+            {
+                DateTime existingEndTime = s.Date.AddMinutes(s.Duration);
+                return (session.Date >= s.Date && session.Date < existingEndTime) ||
+                       (sessionEndTime > s.Date && sessionEndTime <= existingEndTime) ||
+                       (session.Date <= s.Date && sessionEndTime >= existingEndTime);
+            });
+
+
+            if (isOverlapping)
+            {
+                ModelState.AddModelError("Date", "A session already exists at this time for this study group. Sessions cannot overlap.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                // The creator is the current logged in user
+                session.CreatorUserID = (int)Session["UserID"];
+
+                db.Sessions.Add(session);
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+
+            // Reload study group info if validation fails
+            ViewBag.StudyGroupName = studyGroup.Name;
+            ViewBag.SubjectTitle = studyGroup.Subject.Title;
+            ViewBag.StudyGroupID = studyGroup.StudyGroupID;
+            ViewBag.IsStudyGroupLocked = true;
+
+
+            return View("Create", session);
+
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)

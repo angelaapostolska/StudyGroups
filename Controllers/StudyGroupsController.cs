@@ -43,7 +43,13 @@ namespace StudyGroups.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            StudyGroup studyGroup = db.StudyGroups.Find(id);
+
+            StudyGroup studyGroup = db.StudyGroups
+               .Include(s => s.Creator)
+               .Include(s => s.Subject)
+               .Include(s => s.Members)
+               .FirstOrDefault(s => s.StudyGroupID == id);
+
             if (studyGroup == null)
             {
                 return HttpNotFound();
