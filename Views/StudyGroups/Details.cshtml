@@ -1,63 +1,89 @@
 ﻿@model StudyGroups.Models.StudyGroup
-
 @{
     ViewBag.Title = "Details";
     bool isLoggedIn = Session["UserID"] != null;
-    bool isCreator = isLoggedIn && Model.CreatorUserID == (int)Session["UserID"];
-    bool isMember = isLoggedIn && Model.Members != null && Model.Members.Any(m => m.UserID == (int)Session["UserID"]);
+    int currentUserId = isLoggedIn ? (int)Session["UserID"] : 0;
+    bool isCreator = isLoggedIn && Model.CreatorUserID == currentUserId;
+    bool isMember = isLoggedIn && Model.Members != null && Model.Members.Any(m => m.UserID == currentUserId);
     bool canCreateSession = isCreator || isMember;
 }
 
-<h2>Details</h2>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>@Model.Name</h2>
+    <div>
+        @if (isCreator)
+        {
+            @Html.ActionLink("Edit", "Edit", new { id = Model.StudyGroupID }, null)
+            <text> | </text>
+        }
+        @Html.ActionLink("Back to List", "Index", null, null)
+    </div>
+</div>
 
 <div>
-    <h4>StudyGroup</h4>
+    <h4>Study Group Details</h4>
     <hr />
     <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.Creator.FirstName)
-        </dt>
+        <dt>Subject</dt>
+        <dd>@Html.DisplayFor(model => model.Subject.Title)</dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.Creator.FirstName)
-        </dd>
+        <dt>Created By</dt>
+        <dd>@Html.DisplayFor(model => model.Creator.FirstName) @Html.DisplayFor(model => model.Creator.LastName)</dd>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.Subject.Title)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Subject.Title)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-
+        <dt>Description</dt>
+        <dd>@Html.DisplayFor(model => model.Description)</dd>
     </dl>
 </div>
-<p>
-    @if (canCreateSession)
-    {
-        @Html.ActionLink("Create Session for this Study Group", "CreateForStudyGroup", "Sessions", new { id = Model.StudyGroupID }, null)
-        <text> | </text>
-    }
-    @if (isCreator)
-    {
-        @Html.ActionLink("Edit", "Edit", new { id = Model.StudyGroupID })
-        <text> | </text>
-    }
-    @Html.ActionLink("Back to List", "Index")
-</p>
+
+@* Sessions Section *@
+@if (isLoggedIn)
+{
+    <div style="margin-top: 40px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h4>Study Sessions of this Group</h4>
+            @if (canCreateSession)
+            {
+                @Html.ActionLink("Create Session", "CreateForStudyGroup", "Sessions", new { id = Model.StudyGroupID }, new { @class = "btn btn-primary" })
+            }
+        </div>
+        <hr />
+
+        @if (Model.Sessions != null && Model.Sessions.Any())
+        {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Duration</th>
+                    <th>Created By</th>
+                    <th>Attendees</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var session in Model.Sessions.OrderByDescending(s => s.Date))
+                {
+                    <tr>
+                        <td>@session.Date.ToString("MM/dd/yyyy HH:mm")</td>
+                        <td>@session.Duration min</td>
+                        <td>
+                            @if (session.Creator != null)
+                            {
+                                @session.Creator.FirstName @session.Creator.LastName
+                            }
+                        </td>
+                        <td>@(session.Attendees != null ? session.Attendees.Count : 0)</td>
+                        <td>
+                            @Html.ActionLink("Details", "Details", "Sessions", new { id = session.SessionID }, new { @class = "btn btn-sm btn-info" })
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        }
+        else
+        {
+        <p class="text-muted">No sessions to display.</p>
+        }
+    </div>
+}

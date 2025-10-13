@@ -44,15 +44,32 @@ namespace StudyGroups.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
+            int? currentUserID = (int?)Session["UserID"];
+
             StudyGroup studyGroup = db.StudyGroups
                .Include(s => s.Creator)
                .Include(s => s.Subject)
                .Include(s => s.Members)
+               .Include(s => s.Sessions.Select(sg => sg.Attendees))
+               .Include(s => s.Sessions.Select(sg => sg.Creator))
                .FirstOrDefault(s => s.StudyGroupID == id);
 
             if (studyGroup == null)
             {
                 return HttpNotFound();
+            }
+
+            // showing all sessions of this study group, filtered by access
+            if (currentUserID.HasValue)
+            {
+                bool isGroupCreator = studyGroup.CreatorUserID == currentUserID.Value;
+
+                if (!isGroupCreator)
+                {
+                    // non-creators can only see sessions they are attending
+                    studyGroup.Sessions = studyGroup.Sessions
+                        .Where(s => s.Attendees != null && s.Attendees.Any(a => a.UserID == currentUserID.Value)).ToList();
+                }
             }
             return View(studyGroup);
         }
