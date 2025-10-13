@@ -20,19 +20,61 @@ namespace StudyGroups.Controllers
 
         // GET: StudyGroups
        
-        public ActionResult Index(string searchString)
+        public ActionResult Index(string searchString, string filter)
         {
-            var studyGroups = db.StudyGroups.Include(s => s.Creator).Include(s => s.Subject);
+            int? currentUserID = (int?)Session["UserID"];
 
-            System.Diagnostics.Debug.WriteLine("Search String: " + searchString);
+            //TempData["Debug"] = $"Filter: {filter}, SearchString: {searchString}, UserID: {currentUserID}";
 
 
+            var studyGroups = db.StudyGroups
+                .Include(s => s.Creator)
+                .Include(s => s.Subject)
+                .Include(s => s.Members);
+
+            //search querying 
             if (!String.IsNullOrEmpty(searchString))
             {
                 studyGroups = studyGroups.Where(s => s.Name.Contains(searchString)
                                                 || s.Description.Contains(searchString)
                                                 || s.Subject.Title.Contains(searchString));
             }
+
+            // category filter
+            if (String.IsNullOrEmpty(filter))
+            {
+                filter = "all";
+            }
+
+            if (currentUserID.HasValue)
+            {
+                switch (filter.ToLower())
+                {
+                    case "created":
+                        // created by the current user
+                        studyGroups = studyGroups.Where(s => s.CreatorUserID == currentUserID.Value);
+                        break;
+                    case "joined":
+                        // user is a member 
+                        studyGroups = studyGroups.Where(s => s.Members.Any(m => m.UserID == currentUserID.Value)
+                                                          && s.CreatorUserID != currentUserID.Value);
+                        break;
+                    case "available":
+                        // not a member and not the creator
+                        studyGroups = studyGroups.Where(s => !s.Members.Any(m => m.UserID == currentUserID.Value)
+                                                          && s.CreatorUserID != currentUserID.Value);
+                        break;
+                    case "all":
+                    default:
+                        // Show all groups
+                        break;
+                }
+            }
+
+            ViewBag.CurrentFilter = filter ?? "all";
+            ViewBag.SearchString = searchString;
+
+
             return View(studyGroups.ToList());
         }
 

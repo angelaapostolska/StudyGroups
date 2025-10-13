@@ -1,16 +1,20 @@
 ﻿@model IEnumerable<StudyGroups.Models.StudyGroup>
 @{
     ViewBag.Title = "Study Groups";
+    string currentFilter = ViewBag.CurrentFilter ?? "all";
+    string searchString = ViewBag.SearchString;
 }
+
 <h2>Study Groups</h2>
 
 <div style="margin-bottom: 20px;">
     @using (Html.BeginForm("Index", "StudyGroups", FormMethod.Get, new { @class = "form-inline" }))
     {
+        <input type="hidden" name="filter" value="@currentFilter" />
         <div class="form-group" style="margin-right: 10px;">
             <input type="text"
                    name="searchString"
-                   value="@Request.QueryString["searchString"]"
+                   value="@searchString"
                    class="form-control"
                    placeholder="Search by name, description, or subject..."
                    style="width: 300px;" />
@@ -18,12 +22,39 @@
         <button type="submit" class="btn btn-default">
             <span class="glyphicon glyphicon-search"></span> Search
         </button>
-        if (!String.IsNullOrEmpty(Request.QueryString["searchString"]))
+        if (!String.IsNullOrEmpty(searchString))
         {
-            @Html.ActionLink("Clear", "Index", null, new { @class = "btn btn-link" })
+            @Html.ActionLink("Clear", "Index", new { filter = currentFilter }, new { @class = "btn btn-link" })
         }
     }
 </div>
+
+@* Tab Navigation *@
+@if (Session["UserID"] != null)
+{
+    <ul class="nav nav-tabs" style="margin-bottom: 20px;">
+        <li class="@(currentFilter == "all" ? "active" : "")">
+            @Html.ActionLink("All Groups", "Index", new { filter = "all", searchString = searchString }) |
+        </li>
+        <li class="@(currentFilter == "created" ? "active" : "")">
+            @Html.ActionLink("Created by Me", "Index", new { filter = "created", searchString = searchString }) |
+        </li>
+        <li class="@(currentFilter == "joined" ? "active" : "")">
+            @Html.ActionLink("Joined Groups", "Index", new { filter = "joined", searchString = searchString }) |
+        </li>
+        <li class="@(currentFilter == "available" ? "active" : "")">
+            @Html.ActionLink("Available Groups", "Index", new { filter = "available", searchString = searchString }) 
+        </li>
+    </ul>
+}
+
+
+@if (TempData["Debug"] != null)
+{
+    <div style="background-color: red; color: white; padding: 10px;">
+        @TempData["Debug"]
+    </div>
+}
 
 @if (Session["UserID"] != null && Session["UserRole"]?.ToString() == "User")
 {

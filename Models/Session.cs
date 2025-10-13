@@ -18,6 +18,10 @@ namespace StudyGroups.Models
         [Required]
         public int Duration { get; set; } // in minutes
 
+        [Required]
+        [Range(1, 10, ErrorMessage = "Maximum attendees must be between 1 and 10")]
+        public int MaxAttendees { get; set; } = 10;
+
         // Foreign key - which study group this session belongs to
         [Required]
         public int StudyGroupID { get; set; }
