@@ -18,10 +18,91 @@ namespace StudyGroups.Controllers
         private StudyGroupContext db = new StudyGroupContext();
 
         // GET: Sessions
-        public ActionResult Index()
+        public ActionResult Index(string searchString, int? studyGroupId, int? page)
         {
-            var sessions = db.Sessions.Include(s => s.Creator).Include(s => s.StudyGroup);
-            return View(sessions.ToList());
+            int? currentUserID = Session["UserID"] as int?;
+
+            // filtering by study groups where the user is a member or the creator  
+            
+            if (currentUserID.HasValue)
+            {
+                var userStudyGroups = db.StudyGroups
+                .Include(sg => sg.Members)
+                .Where(sg => sg.CreatorUserID == currentUserID.Value ||
+                            sg.Members.Any(m => m.UserID == currentUserID.Value))
+                .OrderBy(sg => sg.Name)
+                .ToList();
+
+                ViewBag.StudyGroups = new SelectList(userStudyGroups, "StudyGroupID", "Name", studyGroupId);
+            }
+            else
+            {
+                ViewBag.StudyGroups = new SelectList(Enumerable.Empty<SelectListItem>());
+            }
+
+            DateTime now = DateTime.Now;
+
+            var sessions = db.Sessions
+                .Include(s => s.Creator)
+                .Include(s => s.StudyGroup)
+                .Include(s => s.StudyGroup.Subject)
+                .Include(s => s.StudyGroup.Members)
+                .Include(s => s.Attendees)
+                .AsEnumerable(); 
+
+       
+            // user is the member of the study group where the session belongs, or user is the creator
+            if (currentUserID.HasValue)
+            {
+                sessions = sessions.Where(s =>
+                    s.CreatorUserID == currentUserID.Value ||
+                    (s.StudyGroup.Members != null && s.StudyGroup.Members.Any(m => m.UserID == currentUserID.Value))
+                );
+            }
+
+            // search filtering
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                sessions = sessions.Where(s =>
+                    s.StudyGroup.Name.Contains(searchString) ||
+                    s.StudyGroup.Subject.Title.Contains(searchString) ||
+                    s.Creator.FirstName.Contains(searchString) ||
+                    s.Creator.LastName.Contains(searchString)
+                );
+            }
+
+            // study group filter
+            if (studyGroupId.HasValue && studyGroupId.Value > 0)
+            {
+                sessions = sessions.Where(s => s.StudyGroupID == studyGroupId.Value);
+            }
+
+            // order by date and filter only upcoming
+            sessions = sessions.OrderBy(s => s.Date);
+            var allSessions = sessions.ToList();
+            var upcomingSessions = allSessions.Where(s => s.Date.AddMinutes(s.Duration) > now).ToList();
+
+            // pagination
+            int pageSize = 10;
+            int pageNumber = (page ?? 1);
+
+            var totalItems = upcomingSessions.Count();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var pagedSessions = upcomingSessions
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+
+            ViewBag.SearchString = searchString;
+            ViewBag.StudyGroupId = studyGroupId;
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+
+
+            return View(pagedSessions);
         }
 
         // GET: Sessions/Details/5
@@ -340,6 +421,84 @@ namespace StudyGroups.Controllers
 
             return View("Create", session);
 
+        }
+
+        // POST: Sessions/Join/5
+        [HttpPost]
+        public ActionResult Join(int id)
+        {
+            if (Session["UserID"] == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            int currentUserID = (int)Session["UserID"];
+            var session = db.Sessions
+                .Include(s => s.Attendees)
+                .FirstOrDefault(s => s.SessionID == id);
+
+            if (session == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Check if user is the creator
+            if (session.CreatorUserID == currentUserID)
+            {
+                TempData["Error"] = "You cannot join your own session.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            // Check if already attending
+            if (session.Attendees.Any(a => a.UserID == currentUserID))
+            {
+                TempData["Error"] = "You are already attending this session.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            // Check if session is full
+            if (session.Attendees.Count >= session.MaxAttendees)
+            {
+                TempData["Error"] = "This session is full.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            var user = db.Users.Find(currentUserID);
+            session.Attendees.Add(user);
+            db.SaveChanges();
+
+            TempData["Success"] = "Successfully joined the session!";
+            return RedirectToAction("Details", new { id });
+        }
+
+        // POST: Sessions/Leave/5
+        [HttpPost]
+        public ActionResult Leave(int id)
+        {
+            if (Session["UserID"] == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            int currentUserID = (int)Session["UserID"];
+            var session = db.Sessions
+                .Include(s => s.Attendees)
+                .FirstOrDefault(s => s.SessionID == id);
+
+            if (session == null)
+            {
+                return HttpNotFound();
+            }
+
+            var user = session.Attendees.FirstOrDefault(a => a.UserID == currentUserID);
+            if (user != null)
+            {
+                session.Attendees.Remove(user);
+                db.SaveChanges();
+                TempData["Success"] = "Successfully left the session.";
+            }
+
+            return RedirectToAction("Index");
         }
 
         protected override void Dispose(bool disposing)

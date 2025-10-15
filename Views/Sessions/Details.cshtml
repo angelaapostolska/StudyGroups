@@ -1,8 +1,49 @@
 ﻿@model StudyGroups.Models.Session
 @{
     ViewBag.Title = "Details";
+    int? currentUserID = Session["UserID"] as int?;
+    bool isCreator = currentUserID.HasValue && Model.CreatorUserID == currentUserID.Value;
+    bool isAttending = currentUserID.HasValue && Model.Attendees != null && Model.Attendees.Any(a => a.UserID == currentUserID.Value);
+    bool isFull = Model.Attendees != null && Model.Attendees.Count >= Model.MaxAttendees;
 }
-<h2>Details</h2>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>Session Details</h2>
+    <div>
+        @if (currentUserID.HasValue)
+        {
+            if (isCreator)
+            {
+                @Html.ActionLink("Edit", "Edit", new { id = Model.SessionID }, new { @class = "btn btn-default" })
+                <text> | </text>
+            }
+            else if (isAttending)
+            {
+                using (Html.BeginForm("Leave", "Sessions", new { id = Model.SessionID }, FormMethod.Post, new { style = "display:inline;" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to leave this session?');">Leave Session</button>
+                }
+                <text> | </text>
+            }
+            else if (isFull)
+            {
+                <button type="button" class="btn btn-default" disabled>Session Full</button>
+                <text> | </text>
+            }
+            else
+            {
+                using (Html.BeginForm("Join", "Sessions", new { id = Model.SessionID }, FormMethod.Post, new { style = "display:inline;" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-success">Join Session</button>
+                }
+                <text> | </text>
+            }
+        }
+        @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-default" })
+    </div>
+</div>
 
 @if (TempData["Success"] != null)
 {
@@ -19,14 +60,14 @@
 }
 
 <div>
-    <h4>Session</h4>
+    <h4>Session Information</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
             @Html.DisplayNameFor(model => model.Creator.FirstName)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Creator.FirstName)
+            @Html.DisplayFor(model => model.Creator.FirstName) @Html.DisplayFor(model => model.Creator.LastName)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.StudyGroup.Name)
@@ -38,7 +79,7 @@
             @Html.DisplayNameFor(model => model.Date)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Date)
+            @Model.Date.ToString("MM/dd/yyyy HH:mm")
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Duration)
@@ -46,8 +87,40 @@
         <dd>
             @Html.DisplayFor(model => model.Duration) minutes
         </dd>
+        <dt>
+            Attendees
+        </dt>
+        <dd>
+            @(Model.Attendees?.Count ?? 0) / @Model.MaxAttendees
+        </dd>
     </dl>
 </div>
+
+@* Attendees List *@
+@if (Model.Attendees != null && Model.Attendees.Any())
+{
+    <div style="margin-top: 30px;">
+        <h4>Attendees</h4>
+        <hr />
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var attendee in Model.Attendees)
+                {
+                    <tr>
+                        <td>@attendee.FirstName @attendee.LastName</td>
+                        <td>@attendee.Email</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
 
 @* Rating Section *@
 @if (ViewBag.HasSessionEnded)
@@ -142,12 +215,3 @@ else
         }
     </div>
 }
-
-<p style="margin-top: 20px;">
-    @if (Session["UserID"] != null && Model.CreatorUserID == (int)Session["UserID"])
-    {
-        @Html.ActionLink("Edit", "Edit", new { id = Model.SessionID })
-        <text> | </text>
-    }
-    @Html.ActionLink("Back to List", "Index")
-</p>

@@ -159,6 +159,10 @@
     <Compile Include="Migrations\202510101559420_RemoveRoleRequiredValidation.Designer.cs">
       <DependentUpon>202510101559420_RemoveRoleRequiredValidation.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202510131132356_AddMaxAttendeesToSession.cs" />
+    <Compile Include="Migrations\202510131132356_AddMaxAttendeesToSession.Designer.cs">
+      <DependentUpon>202510131132356_AddMaxAttendeesToSession.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Rating.cs" />
     <Compile Include="Models\Session.cs" />
@@ -286,6 +290,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202510101559420_RemoveRoleRequiredValidation.resx">
       <DependentUpon>202510101559420_RemoveRoleRequiredValidation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510131132356_AddMaxAttendeesToSession.resx">
+      <DependentUpon>202510131132356_AddMaxAttendeesToSession.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

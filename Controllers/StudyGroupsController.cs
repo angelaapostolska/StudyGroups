@@ -20,11 +20,13 @@ namespace StudyGroups.Controllers
 
         // GET: StudyGroups
        
-        public ActionResult Index(string searchString, string filter)
+        public ActionResult Index(string searchString, string filter, int? subjectId, int? page)
         {
             int? currentUserID = (int?)Session["UserID"];
 
             //TempData["Debug"] = $"Filter: {filter}, SearchString: {searchString}, UserID: {currentUserID}";
+
+            ViewBag.Subjects = new SelectList(db.Subjects.OrderBy(s => s.Title), "SubjectID", "Title", subjectId);
 
 
             var studyGroups = db.StudyGroups
@@ -38,6 +40,12 @@ namespace StudyGroups.Controllers
                 studyGroups = studyGroups.Where(s => s.Name.Contains(searchString)
                                                 || s.Description.Contains(searchString)
                                                 || s.Subject.Title.Contains(searchString));
+            }
+
+            // subject filtering
+            if (subjectId.HasValue && subjectId.Value > 0)
+            {
+                studyGroups = studyGroups.Where(s => s.SubjectID == subjectId.Value);
             }
 
             // category filter
@@ -71,11 +79,28 @@ namespace StudyGroups.Controllers
                 }
             }
 
+            // pagination
+            int pageSize = 10;
+            int pageNumber = (page ?? 1);
+
+            var totalItems = studyGroups.Count();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var pagedStudyGroups = studyGroups
+                .OrderBy(s => s.Name)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
             ViewBag.CurrentFilter = filter ?? "all";
             ViewBag.SearchString = searchString;
+            ViewBag.SubjectId = subjectId;
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
 
 
-            return View(studyGroups.ToList());
+            return View(pagedStudyGroups);
         }
 
         // GET: StudyGroups/Details/5
@@ -101,18 +126,17 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            // showing all sessions of this study group, filtered by access
-            if (currentUserID.HasValue)
-            {
-                bool isGroupCreator = studyGroup.CreatorUserID == currentUserID.Value;
+            // check if user is creator or member
+            bool isGroupCreator = studyGroup.CreatorUserID == currentUserID;
+            bool isGroupMember = studyGroup.Members != null &&
+                                studyGroup.Members.Any(m => m.UserID == currentUserID);
 
-                if (!isGroupCreator)
-                {
-                    // non-creators can only see sessions they are attending
-                    studyGroup.Sessions = studyGroup.Sessions
-                        .Where(s => s.Attendees != null && s.Attendees.Any(a => a.UserID == currentUserID.Value)).ToList();
-                }
+            if (!isGroupCreator && !isGroupMember)
+            {
+                // Non-members cannot see any sessions
+                studyGroup.Sessions = new List<Session>();
             }
+
             return View(studyGroup);
         }
 
@@ -311,6 +335,73 @@ namespace StudyGroups.Controllers
 
             return View("Create", studyGroup);
         }
+
+        // POST: StudyGroups/Join/5
+        [HttpPost]
+        public ActionResult Join(int id)
+        {
+            if (Session["UserID"] == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            int currentUserID = (int)Session["UserID"];
+            var studyGroup = db.StudyGroups
+                .Include(sg => sg.Members)
+                .FirstOrDefault(sg => sg.StudyGroupID == id);
+
+            if (studyGroup == null)
+            {
+                return HttpNotFound();
+            }
+
+            // check if the user is already a member or the creator
+            if (studyGroup.CreatorUserID == currentUserID ||
+                (studyGroup.Members != null && studyGroup.Members.Any(m => m.UserID == currentUserID)))
+            {
+                TempData["Error"] = "You are already a member or the creator of this study group.";
+                return RedirectToAction("Details", new { id = id });
+            }
+
+            var user = db.Users.Find(currentUserID);
+            studyGroup.Members.Add(user);
+            db.SaveChanges();
+
+            TempData["Success"] = "Successfully joined the study group!";
+            return RedirectToAction("Details", new { id });
+        }
+
+
+        // POST: StudyGroups/Leave/5
+        [HttpPost]
+        public ActionResult Leave(int id)
+        {
+            if (Session["UserID"] == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            int currentUserID = (int)Session["UserID"];
+            var studyGroup = db.StudyGroups
+                .Include(sg => sg.Members)
+                .FirstOrDefault(sg => sg.StudyGroupID == id);
+
+            if (studyGroup == null)
+            {
+                return HttpNotFound();
+            }
+
+            // check if the user is a member
+            var user = studyGroup.Members.FirstOrDefault(m => m.UserID == currentUserID);
+            if (user != null)
+            {
+                studyGroup.Members.Remove(user);
+                db.SaveChanges();
+                TempData["Success"] = "Successfully left the study group.";
+            }
+            return RedirectToAction("Index");
+        }
+
 
         protected override void Dispose(bool disposing)
         {

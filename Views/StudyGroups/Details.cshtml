@@ -1,10 +1,9 @@
 ﻿@model StudyGroups.Models.StudyGroup
 @{
     ViewBag.Title = "Details";
-    bool isLoggedIn = Session["UserID"] != null;
-    int currentUserId = isLoggedIn ? (int)Session["UserID"] : 0;
-    bool isCreator = isLoggedIn && Model.CreatorUserID == currentUserId;
-    bool isMember = isLoggedIn && Model.Members != null && Model.Members.Any(m => m.UserID == currentUserId);
+    int currentUserId = (int)Session["UserID"];
+    bool isCreator = Model.CreatorUserID == currentUserId;
+    bool isMember = Model.Members != null && Model.Members.Any(m => m.UserID == currentUserId);
     bool canCreateSession = isCreator || isMember;
 }
 
@@ -14,6 +13,24 @@
         @if (isCreator)
         {
             @Html.ActionLink("Edit", "Edit", new { id = Model.StudyGroupID }, null)
+            <text> | </text>
+        }
+        else if (isMember)
+        {
+            using (Html.BeginForm("Leave", "StudyGroups", new { id = Model.StudyGroupID }, FormMethod.Post, new { style = "display:inline;" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to leave this study group?');">Leave Group</button>
+            }
+            <text> | </text>
+        }
+        else
+        {
+            using (Html.BeginForm("Join", "StudyGroups", new { id = Model.StudyGroupID }, FormMethod.Post, new { style = "display:inline;" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success">Join Group</button>
+            }
             <text> | </text>
         }
         @Html.ActionLink("Back to List", "Index", null, null)
@@ -36,54 +53,92 @@
 </div>
 
 @* Sessions Section *@
-@if (isLoggedIn)
-{
-    <div style="margin-top: 40px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h4>Study Sessions of this Group</h4>
-            @if (canCreateSession)
-            {
-                @Html.ActionLink("Create Session", "CreateForStudyGroup", "Sessions", new { id = Model.StudyGroupID }, new { @class = "btn btn-primary" })
-            }
-        </div>
-        <hr />
-
-        @if (Model.Sessions != null && Model.Sessions.Any())
+<div style="margin-top: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h4>Study Sessions</h4>
+        @if (canCreateSession)
         {
+            @Html.ActionLink("Create Session", "CreateForStudyGroup", "Sessions", new { id = Model.StudyGroupID }, new { @class = "btn btn-primary" })
+        }
+    </div>
+    <hr />
+
+    @if (canCreateSession)
+    {
+        if (Model.Sessions != null && Model.Sessions.Any())
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Duration</th>
+                        <th>Created By</th>
+                        <th>Attendees</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var session in Model.Sessions.OrderBy(s => s.Date))
+                    {
+                        <tr>
+                            <td>@session.Date.ToString("MM/dd/yyyy HH:mm")</td>
+                            <td>@session.Duration min</td>
+                            <td>
+                                @if (session.Creator != null)
+                                {
+                                    @session.Creator.FirstName @session.Creator.LastName
+                                }
+                            </td>
+                            <td>@(session.Attendees != null ? session.Attendees.Count : 0) / @session.MaxAttendees</td>
+                            <td>
+                                @Html.ActionLink("Details", "Details", "Sessions", new { id = session.SessionID }, new { @class = "btn btn-sm btn-info" })
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted">No sessions scheduled for this group yet.</p>
+        }
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <strong>Access Restricted</strong>
+            <p>Only members of this study group can view sessions. Please join this group to see available sessions.</p>
+        </div>
+    }
+</div>
+
+
+@* Members Section *@
+<div style="margin-top: 40px;">
+    <h4>Members</h4>
+    <hr />
+    @if (Model.Members != null && Model.Members.Any())
+    {
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Duration</th>
-                    <th>Created By</th>
-                    <th>Attendees</th>
-                    <th></th>
+                    <th>Name</th>
+                    <th>Email</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var session in Model.Sessions.OrderByDescending(s => s.Date))
+                @foreach (var member in Model.Members)
                 {
                     <tr>
-                        <td>@session.Date.ToString("MM/dd/yyyy HH:mm")</td>
-                        <td>@session.Duration min</td>
-                        <td>
-                            @if (session.Creator != null)
-                            {
-                                @session.Creator.FirstName @session.Creator.LastName
-                            }
-                        </td>
-                        <td>@(session.Attendees != null ? session.Attendees.Count : 0)</td>
-                        <td>
-                            @Html.ActionLink("Details", "Details", "Sessions", new { id = session.SessionID }, new { @class = "btn btn-sm btn-info" })
-                        </td>
+                        <td>@member.FirstName @member.LastName</td>
+                        <td>@member.Email</td>
                     </tr>
                 }
             </tbody>
         </table>
-        }
-        else
-        {
-        <p class="text-muted">No sessions to display.</p>
-        }
-    </div>
-}
+    }
+    else
+    {
+        <p class="text-muted">No members in this group yet.</p>
+    }
+</div>

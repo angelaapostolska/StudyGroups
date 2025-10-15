@@ -3,9 +3,23 @@
     ViewBag.Title = "Study Groups";
     string currentFilter = ViewBag.CurrentFilter ?? "all";
     string searchString = ViewBag.SearchString;
+    int? currentUserID = Session["UserID"] as int?;
+    int? subjectId = ViewBag.SubjectId;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalItems = ViewBag.TotalItems ?? 0;
 }
-
 <h2>Study Groups</h2>
+
+@* Display success/error messages *@
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
 
 <div style="margin-bottom: 20px;">
     @using (Html.BeginForm("Index", "StudyGroups", FormMethod.Get, new { @class = "form-inline" }))
@@ -19,16 +33,22 @@
                    placeholder="Search by name, description, or subject..."
                    style="width: 300px;" />
         </div>
+
+
+        <div class="form-group" style="margin-right: 10px;">
+            @Html.DropDownList("subjectId", (SelectList)ViewBag.Subjects, "All Subjects", new { @class = "form-control", style = "width: 200px;" })
+        </div>
+
         <button type="submit" class="btn btn-default">
             <span class="glyphicon glyphicon-search"></span> Search
         </button>
-        if (!String.IsNullOrEmpty(searchString))
+
+        if (!String.IsNullOrEmpty(searchString) || (subjectId.HasValue && subjectId.Value > 0))
         {
             @Html.ActionLink("Clear", "Index", new { filter = currentFilter }, new { @class = "btn btn-link" })
         }
     }
 </div>
-
 @* Tab Navigation *@
 @if (Session["UserID"] != null)
 {
@@ -43,18 +63,17 @@
             @Html.ActionLink("Joined Groups", "Index", new { filter = "joined", searchString = searchString }) |
         </li>
         <li class="@(currentFilter == "available" ? "active" : "")">
-            @Html.ActionLink("Available Groups", "Index", new { filter = "available", searchString = searchString }) 
+            @Html.ActionLink("Available Groups", "Index", new { filter = "available", searchString = searchString })
         </li>
     </ul>
 }
 
-
-@if (TempData["Debug"] != null)
-{
-    <div style="background-color: red; color: white; padding: 10px;">
-        @TempData["Debug"]
-    </div>
-}
+@*@if (TempData["Debug"] != null)
+    {
+        <div style="background-color: red; color: white; padding: 10px;">
+            @TempData["Debug"]
+        </div>
+    }*@
 
 @if (Session["UserID"] != null && Session["UserRole"]?.ToString() == "User")
 {
@@ -63,47 +82,104 @@
     </p>
 }
 
+<div style="margin-bottom: 10px;">
+    <strong>Showing @Model.Count() of @totalItems study groups</strong>
+</div>
+
+
 <table class="table">
     <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Creator.FirstName)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Subject.Title)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Name)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Description)
-        </th>
+        <th>Creator</th>
+        <th>Subject</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Members</th>
         <th></th>
     </tr>
     @foreach (var item in Model)
     {
+        bool isCreator = currentUserID.HasValue && item.CreatorUserID == currentUserID.Value;
+        bool isMember = currentUserID.HasValue && item.Members != null && item.Members.Any(m => m.UserID == currentUserID.Value);
+
         <tr>
+            <td>@Html.DisplayFor(modelItem => item.Creator.FirstName)</td>
+            <td>@Html.DisplayFor(modelItem => item.Subject.Title)</td>
+            <td>@Html.DisplayFor(modelItem => item.Name)</td>
+            <td>@Html.DisplayFor(modelItem => item.Description)</td>
+            <td>@(item.Members?.Count ?? 0)</td>
             <td>
-                @Html.DisplayFor(modelItem => item.Creator.FirstName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Subject.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @if (Session["UserID"] != null && item.CreatorUserID == (int)Session["UserID"])
+                @if (currentUserID.HasValue)
                 {
-                    @Html.ActionLink("Edit", "Edit", new { id = item.StudyGroupID })
-                    <text> | </text>
-                    @Html.ActionLink("Delete", "Delete", new { id = item.StudyGroupID })
-                    <text> | </text>
+                    if (isCreator)
+                    {
+                        @Html.ActionLink("Edit", "Edit", new { id = item.StudyGroupID })
+                        <text> | </text>
+                        @Html.ActionLink("Delete", "Delete", new { id = item.StudyGroupID })
+                        <text> | </text>
+                        @Html.ActionLink("Details", "Details", new { id = item.StudyGroupID })
+                    }
+                    else if (isMember)
+                    {
+                        using (Html.BeginForm("Leave", "StudyGroups", new { id = item.StudyGroupID }, FormMethod.Post, new { style = "display:inline;" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-link" style="padding:0;vertical-align:baseline;" onclick="return confirm('Are you sure you want to leave this study group?');">Leave</button>
+                        }
+                        <text> | </text>
+                        @Html.ActionLink("Details", "Details", new { id = item.StudyGroupID })
+                    }
+                    else
+                    {
+                        using (Html.BeginForm("Join", "StudyGroups", new { id = item.StudyGroupID }, FormMethod.Post, new { style = "display:inline;" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-link" style="padding:0;vertical-align:baseline;">Join</button>
+                        }
+                        <text> | </text>
+                        @Html.ActionLink("Details", "Details", new { id = item.StudyGroupID })
+                    }
                 }
-                @Html.ActionLink("Details", "Details", new { id = item.StudyGroupID })
             </td>
         </tr>
     }
 </table>
+
+@* Pagination *@
+@if (totalPages > 1)
+{
+    <div class="text-center">
+        <ul class="pagination">
+            @* Previous Button *@
+            <li class="@(currentPage == 1 ? "disabled" : "")">
+                @if (currentPage == 1)
+                {
+                    <span>&laquo; Previous</span>
+                }
+                else
+                {
+                    @Html.ActionLink("« Previous", "Index", new { page = currentPage - 1, filter = currentFilter, searchString = searchString, subjectId = subjectId })
+                }
+            </li>
+
+            @* Page Numbers *@
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                <li class="@(i == currentPage ? "active" : "")">
+                    @Html.ActionLink(i.ToString(), "Index", new { page = i, filter = currentFilter, searchString = searchString, subjectId = subjectId })
+                </li>
+            }
+
+            @* Next Button *@
+            <li class="@(currentPage == totalPages ? "disabled" : "")">
+                @if (currentPage == totalPages)
+                {
+                    <span>Next &raquo;</span>
+                }
+                else
+                {
+                    @Html.ActionLink("Next »", "Index", new { page = currentPage + 1, filter = currentFilter, searchString = searchString, subjectId = subjectId })
+                }
+            </li>
+        </ul>
+    </div>
+}
