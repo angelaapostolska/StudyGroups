@@ -161,6 +161,7 @@ namespace StudyGroups.Controllers
 
                 db.StudyGroups.Add(studyGroup);
                 db.SaveChanges();
+                TempData["SuccessMessage"] = "Study group created successfully!";
                 return RedirectToAction("Index");
             }
 
@@ -218,6 +219,7 @@ namespace StudyGroups.Controllers
                 studyGroup.CreatorUserID = originalGroup.CreatorUserID;
                 db.Entry(studyGroup).State = EntityState.Modified;
                 db.SaveChanges();
+                TempData["SuccessMessage"] = "Study group updated successfully!";
                 return RedirectToAction("Index");
             }
             ViewBag.SubjectID = new SelectList(db.Subjects, "SubjectID", "Title", studyGroup.SubjectID);
@@ -271,6 +273,7 @@ namespace StudyGroups.Controllers
 
             db.StudyGroups.Remove(studyGroup);
             db.SaveChanges();
+            TempData["SuccessMessage"] = "Study group deleted successfully!";
             return RedirectToAction("Index");
         }
 
@@ -320,6 +323,7 @@ namespace StudyGroups.Controllers
 
                 db.StudyGroups.Add(studyGroup);
                 db.SaveChanges();
+                TempData["SuccessMessage"] = $"You created '{studyGroup.Name}' successfully!";
                 return RedirectToAction("Index");
             }
 
@@ -366,8 +370,7 @@ namespace StudyGroups.Controllers
             var user = db.Users.Find(currentUserID);
             studyGroup.Members.Add(user);
             db.SaveChanges();
-
-            TempData["Success"] = "Successfully joined the study group!";
+            TempData["SuccessMessage"] = $"You joined '{studyGroup.Name}' successfully!";
             return RedirectToAction("Details", new { id });
         }
 
@@ -397,7 +400,7 @@ namespace StudyGroups.Controllers
             {
                 studyGroup.Members.Remove(user);
                 db.SaveChanges();
-                TempData["Success"] = "Successfully left the study group.";
+                TempData["SuccessMessage"] = $"You joined '{studyGroup.Name}' successfully!";
             }
             return RedirectToAction("Index");
         }
