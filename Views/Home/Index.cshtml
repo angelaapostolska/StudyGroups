@@ -1,33 +1,134 @@
-﻿@{
-    ViewBag.Title = "Home Page";
+﻿@model StudyGroups.Models.UserDashboardViewModel
+
+@{
+    ViewBag.Title = "Dashboard";
 }
 
-<main>
-    <section class="row" aria-labelledby="aspnetTitle">
-        <h1 id="title">ASP.NET</h1>
-        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-        <p><a href="https://asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
-    </section>
+<div class="container mt-5 pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
 
-    <div class="row">
-        <section class="col-md-4" aria-labelledby="gettingStartedTitle">
-            <h2 id="gettingStartedTitle">Getting started</h2>
-            <p>
-                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-                enables a clean separation of concerns and gives you full control over markup
-                for enjoyable, agile development.
-            </p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="librariesTitle">
-            <h2 id="librariesTitle">Get more libraries</h2>
-            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="hostingTitle">
-            <h2 id="hostingTitle">Web Hosting</h2>
-            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-        </section>
+            <div class="d-flex align-items-center mb-4">
+
+                <div class="flex-shrink-0">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                         style="width: 80px; height: 80px; font-size: 28px; font-weight: 600;">
+                        @Model.Initials
+                    </div>
+                </div>
+
+                <div class="ms-3">
+                    <h3 class="mb-1">@Model.FullName</h3>
+                    <p class="text-muted mb-0">@Model.Email</p>
+                    <p class="text-muted mb-0"><small>@Model.FormattedJoinedDate</small></p>
+                </div>
+
+            </div>
+
+            <hr class="my-4">
+
+            <h4 class="mb-4">Your Statistics</h4>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body d-flex align-items-center">
+
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-book text-success" viewBox="0 0 16 16">
+                                        <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div class="ms-3">
+                                <h6 class="text-muted mb-1">Subjects Studied</h6>
+                                <h2 class="mb-0">@Model.TotalSubjects</h2>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body d-flex align-items-center">
+
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-calendar-event text-info" viewBox="0 0 16 16">
+                                        <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z" />
+                                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div class="ms-3">
+                                <h6 class="text-muted mb-1">Total Sessions</h6>
+                                <h2 class="mb-0">@Model.TotalSessions</h2>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body d-flex align-items-center">
+
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock text-warning" viewBox="0 0 16 16">
+                                        <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                                        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div class="ms-3">
+                                <h6 class="text-muted mb-1">Time Spent</h6>
+                                <h2 class="mb-0">@Model.FormattedTimeStudied</h2>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body d-flex align-items-center">
+
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-star-fill text-danger" viewBox="0 0 16 16">
+                                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div class="ms-3">
+                                <h6 class="text-muted mb-1">Average Rating</h6>
+                                <h2 class="mb-0">
+                                    @Model.FormattedRating
+                                    @if (Model.AverageRating > 0)
+                                    {
+                                        <span style="font-size: 16px; color: #6c757d;">/5.0</span>
+                                    }
+                                </h2>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
     </div>
-</main>
+</div>

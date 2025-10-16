@@ -3,28 +3,88 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using StudyGroups.DAL;
+using StudyGroups.Filters;
+using StudyGroups.Models;
 
 namespace StudyGroups.Controllers
 {
+    [SessionAuthorize]
     public class HomeController : Controller
     {
+        private StudyGroupContext db = new StudyGroupContext();
+
         public ActionResult Index()
         {
-            return View();
+            string userRole = Session["UserRole"] as string;
+
+            if (userRole == "Admin")
+            {
+                return RedirectToAction("AdminDashboard");
+            }
+
+            int currentUserID = (int)Session["UserID"];
+            var user = db.Users.Find(currentUserID);
+
+            var viewModel = new UserDashboardViewModel
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                JoinedDate = user.JoinedDate,
+                Initials = $"{user.FirstName[0]}{user.LastName[0]}".ToUpper(),
+
+                TotalSubjects = db.StudyGroups
+                    .Where(sg => sg.CreatorUserID == currentUserID)
+                    .Select(sg => sg.SubjectID)
+                    .Union(db.StudyGroups
+                        .Where(sg => sg.Members.Any(m => m.UserID == currentUserID))
+                        .Select(sg => sg.SubjectID))
+                    .Distinct()
+                    .Count(),
+
+                TotalSessions = db.Sessions.Count(s => s.CreatorUserID == currentUserID)
+                                    + db.Sessions.Count(s => s.Attendees.Any(a => a.UserID == currentUserID) && s.CreatorUserID != currentUserID),
+
+                TotalTimeStudied = (db.Sessions
+                            .Where(s => s.CreatorUserID == currentUserID)
+                            .Sum(s => (int?)s.Duration) ?? 0) +
+                            (db.Sessions
+                            .Where(s => s.Attendees.Any(a => a.UserID == currentUserID) && s.CreatorUserID != currentUserID)
+                            .Sum(s => (int?)s.Duration) ?? 0),
+
+                AverageRating = db.Ratings
+                                .Where(r => r.UserID == currentUserID)
+                                .Select(r => (double?)r.Score)
+                                .DefaultIfEmpty(0)
+                                .Average() ?? 0
+            };
+            return View(viewModel);
         }
 
-        public ActionResult About()
+        public ActionResult AdminDashboard()
         {
-            ViewBag.Message = "Your application description page.";
+            string userRole = Session["UserRole"] as string;
+            
+            if (userRole != "Admin")
+            {
+                return RedirectToAction("Index");
+            }
+
+            // TODO: Build admin dashboard view model with site-wide stats
 
             return View();
         }
 
-        public ActionResult Contact()
+        protected override void Dispose(bool disposing)
         {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
         }
+
+
     }
 }

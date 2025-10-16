@@ -34,6 +34,7 @@ namespace StudyGroups.Controllers
 
                 //set default role to user
                 user.Role = "User";
+                user.JoinedDate = DateTime.Now;
                 db.Users.Add(user);
                 db.SaveChanges();
 

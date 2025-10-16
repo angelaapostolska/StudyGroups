@@ -163,12 +163,17 @@
     <Compile Include="Migrations\202510131132356_AddMaxAttendeesToSession.Designer.cs">
       <DependentUpon>202510131132356_AddMaxAttendeesToSession.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202510161845227_AddCretaedDateToUser.cs" />
+    <Compile Include="Migrations\202510161845227_AddCretaedDateToUser.Designer.cs">
+      <DependentUpon>202510161845227_AddCretaedDateToUser.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Rating.cs" />
     <Compile Include="Models\Session.cs" />
     <Compile Include="Models\StudyGroup.cs" />
     <Compile Include="Models\Subject.cs" />
     <Compile Include="Models\User.cs" />
+    <Compile Include="Models\UserDashboardViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -293,6 +298,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202510131132356_AddMaxAttendeesToSession.resx">
       <DependentUpon>202510131132356_AddMaxAttendeesToSession.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510161845227_AddCretaedDateToUser.resx">
+      <DependentUpon>202510161845227_AddCretaedDateToUser.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -52,5 +52,8 @@ namespace StudyGroups.Models
         [InverseProperty("Attendees")]
         public virtual ICollection<Session> AttendingSessions { get; set; }
 
+        [Display(Name = "Joined Date")]
+        public DateTime JoinedDate { get; set; } = DateTime.Now;
+
     }
 }
