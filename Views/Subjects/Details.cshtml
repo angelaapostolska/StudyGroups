@@ -4,35 +4,53 @@
     bool isAdmin = Session["UserRole"] != null && Session["UserRole"].ToString() == "Admin";
     bool isUser = Session["UserRole"] != null && Session["UserRole"].ToString() == "User";
 }
-<h2>Details</h2>
-<div>
-    <h4>Subject</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-    </dl>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Subject Details</h2>
+                @if (isAdmin)
+                {
+                    @Html.ActionLink("Edit", "Edit", new { id = Model.SubjectID }, new { @class = "btn btn-warning" })
+                }
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <strong class="text-muted">Title</strong>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.DisplayFor(model => model.Title)
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <strong class="text-muted">Description</strong>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.DisplayFor(model => model.Description)
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="mt-4">
+                @if (isUser)
+                {
+                    @Html.ActionLink("Create Study Group for this Subject", "CreateForSubject", "StudyGroups", new { id = Model.SubjectID }, new { @class = "btn btn-success me-2" })
+                }
+                @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-outline-secondary" })
+            </div>
+
+        </div>
+    </div>
 </div>
-<p>
-    @if (isUser)
-    {
-        @Html.ActionLink("Create Study Group for this Subject", "CreateForSubject", "StudyGroups", new { id = Model.SubjectID }, null)
-        @:|
-    }
-    @if (isAdmin)
-    {
-        @Html.ActionLink("Edit", "Edit", new { id = Model.SubjectID })
-        @:|
-    }
-    @Html.ActionLink("Back to List", "Index")
-</p>

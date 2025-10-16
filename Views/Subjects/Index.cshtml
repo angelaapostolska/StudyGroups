@@ -3,56 +3,68 @@
     ViewBag.Title = "Index";
     bool isAdmin = Session["UserRole"] != null && Session["UserRole"].ToString() == "Admin";
 }
-<h2>Subjects</h2>
-<div style="margin-bottom: 20px;">
-    @using (Html.BeginForm("Index", "Subjects", FormMethod.Get, new { @class = "form-inline" }))
-    {
-        <div class="form-group" style="margin-right: 10px;">
-            <input type="text"
-                   name="searchString"
-                   value="@Request.QueryString["searchString"]"
-                   class="form-control"
-                   placeholder="Search subjects..."
-                   style="width: 300px;" />
-        </div>
-        <button type="submit" class="btn btn-default">
-            <span class="glyphicon glyphicon-search"></span> Search
-        </button>
-        if (!String.IsNullOrEmpty(Request.QueryString["searchString"]))
-        {
-            @Html.ActionLink("Clear", "Index", null, new { @class = "btn btn-link" })
-        }
-    }
-</div>
-@if (isAdmin)
-{
-    <p>
-        @Html.ActionLink("Create New", "Create", null, new { @class = "btn btn-primary" })
-    </p>
-}
-<table class="table table-striped table-hover">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.Title)</th>
-            <th>@Html.DisplayNameFor(model => model.Description)</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@Html.DisplayFor(modelItem => item.Title)</td>
-                <td>@Html.DisplayFor(modelItem => item.Description)</td>
-                <td>
-                    @Html.ActionLink("Details", "Details", new { id = item.SubjectID }, new { @class = "btn btn-sm btn-info" })
-                    @if (isAdmin)
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Subjects</h2>
+                @if (isAdmin)
+                {
+                    @Html.ActionLink("Create New", "Create", null, new { @class = "btn btn-primary" })
+                }
+            </div>
+
+            @using (Html.BeginForm("Index", "Subjects", FormMethod.Get))
+            {
+                <div class="input-group mb-4" style="max-width: 500px;">
+                    <input type="text"
+                           name="searchString"
+                           value="@Request.QueryString["searchString"]"
+                           class="form-control"
+                           placeholder="Search subjects..." />
+                    <button type="submit" class="btn btn-primary">
+                        <span class="glyphicon glyphicon-search"></span> Search
+                    </button>
+                    @if (!String.IsNullOrEmpty(Request.QueryString["searchString"]))
                     {
-                        @Html.ActionLink("Edit", "Edit", new { id = item.SubjectID }, new { @class = "btn btn-sm btn-warning" })
-                        @Html.ActionLink("Delete", "Delete", new { id = item.SubjectID }, new { @class = "btn btn-sm btn-danger" })
+                        @Html.ActionLink("Clear", "Index", null, new { @class = "btn btn-outline-secondary" })
                     }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                </div>
+            }
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-start-0">@Html.DisplayNameFor(model => model.Title)</th>
+                                <th>@Html.DisplayNameFor(model => model.Description)</th>
+                                <th class="border-end-0">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="border-start-0">@Html.DisplayFor(modelItem => item.Title)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Description)</td>
+                                    <td class="border-end-0">
+                                        @Html.ActionLink("Details", "Details", new { id = item.SubjectID }, new { @class = "btn btn-sm btn-primary" })
+                                        @if (isAdmin)
+                                        {
+                                            @Html.ActionLink("Edit", "Edit", new { id = item.SubjectID }, new { @class = "btn btn-sm btn-warning" })
+                                            @Html.ActionLink("Delete", "Delete", new { id = item.SubjectID }, new { @class = "btn btn-sm btn-danger" })
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

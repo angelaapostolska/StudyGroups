@@ -64,6 +64,7 @@ namespace StudyGroups.Controllers
             {
                 db.Subjects.Add(subject);
                 db.SaveChanges();
+                TempData["SuccessMessage"] = "Subject created successfully!";
                 return RedirectToAction("Index");
             }
 
@@ -95,6 +96,7 @@ namespace StudyGroups.Controllers
             if (ModelState.IsValid)
             {
                 db.Entry(subject).State = EntityState.Modified;
+                TempData["SuccessMessage"] = "Subject updated successfully!";
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
@@ -127,6 +129,8 @@ namespace StudyGroups.Controllers
             Subject subject = db.Subjects.Find(id);
             db.Subjects.Remove(subject);
             db.SaveChanges();
+            TempData["SuccessMessage"] = "Subject deleted successfully!";
+
             return RedirectToAction("Index");
         }
 
