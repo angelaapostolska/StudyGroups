@@ -9,173 +9,259 @@
     int totalItems = ViewBag.TotalItems ?? 0;
 }
 
-<h2>Upcoming Sessions</h2>
-
-@* Display success/error messages *@
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
-
-@* Search and Filter Form *@
-<div style="margin-bottom: 20px;">
-    @using (Html.BeginForm("Index", "Sessions", FormMethod.Get, new { @class = "form-inline" }))
-    {
-        <div class="form-group" style="margin-right: 10px;">
-            <input type="text"
-                   name="searchString"
-                   value="@searchString"
-                   class="form-control"
-                   placeholder="Search by study group, subject, or creator..."
-                   style="width: 350px;" />
-        </div>
-
-        <div class="form-group" style="margin-right: 10px;">
-            @Html.DropDownList("studyGroupId", (SelectList)ViewBag.StudyGroups, "All Study Groups", new { @class = "form-control", style = "width: 200px;" })
-        </div>
-
-        <button type="submit" class="btn btn-default">
-            <span class="glyphicon glyphicon-search"></span> Search
-        </button>
-
-        if (!String.IsNullOrEmpty(searchString) || (studyGroupId.HasValue && studyGroupId.Value > 0))
-        {
-            @Html.ActionLink("Clear Filters", "Index", null, new { @class = "btn btn-link" })
-        }
-    }
-</div>
-
-@if (Session["UserID"] != null && Session["UserRole"]?.ToString() == "User")
-{
-    <p>
-        @Html.ActionLink("Create New", "Create", null, new { @class = "btn btn-primary" })
-    </p>
-}
-
-@* Results Summary *@
-<div style="margin-bottom: 10px;">
-    <strong>Showing @Model.Count() of @totalItems upcoming sessions</strong>
-</div>
-
-<table class="table">
-    <tr>
-        <th>Creator</th>
-        <th>Study Group</th>
-        <th>Date</th>
-        <th>Duration</th>
-        <th>Attendees</th>
-        <th></th>
-    </tr>
-    @foreach (var item in Model)
-    {
-        bool isCreator = currentUserID.HasValue && item.CreatorUserID == currentUserID.Value;
-        bool isAttending = currentUserID.HasValue && item.Attendees != null && item.Attendees.Any(a => a.UserID == currentUserID.Value);
-        bool isFull = item.Attendees != null && item.Attendees.Count >= item.MaxAttendees;
-
-        <tr>
-            <td>@Html.DisplayFor(modelItem => item.Creator.FirstName)</td>
-            <td>@Html.DisplayFor(modelItem => item.StudyGroup.Name)</td>
-            <td>@item.Date.ToString("MM/dd/yyyy HH:mm")</td>
-            <td>@Html.DisplayFor(modelItem => item.Duration) min</td>
-            <td>@(item.Attendees?.Count ?? 0) / @item.MaxAttendees</td>
-            <td>
-                @if (currentUserID.HasValue)
-                {
-                    if (isCreator)
-                    {
-                        @Html.ActionLink("Edit", "Edit", new { id = item.SessionID })
-                        <text> | </text>
-                        @Html.ActionLink("Delete", "Delete", new { id = item.SessionID })
-                        <text> | </text>
-                        @Html.ActionLink("Details", "Details", new { id = item.SessionID })
-                    }
-                    else if (isAttending)
-                    {
-                        using (Html.BeginForm("Leave", "Sessions", new { id = item.SessionID }, FormMethod.Post, new { style = "display:inline;" }))
-                        {
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-link" style="padding:0;vertical-align:baseline;" onclick="return confirm('Are you sure you want to leave this session?');">Leave</button>
-                        }
-                        <text> | </text>
-                        @Html.ActionLink("Details", "Details", new { id = item.SessionID })
-                    }
-                    else if (isFull)
-                    {
-                        <span class="text-muted">Full</span>
-                        <text> | </text>
-                        @Html.ActionLink("Details", "Details", new { id = item.SessionID })
-                    }
-                    else
-                    {
-                        using (Html.BeginForm("Join", "Sessions", new { id = item.SessionID }, FormMethod.Post, new { style = "display:inline;" }))
-                        {
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-link" style="padding:0;vertical-align:baseline;">Join</button>
-                        }
-                        <text> | </text>
-                        @Html.ActionLink("Details", "Details", new { id = item.SessionID })
-                    }
-                }
-            </td>
-        </tr>
-    }
-</table>
-
-@* Pagination *@
-@if (totalPages > 1)
-{
-    <div class="text-center">
-        <ul class="pagination">
-            @* Previous Button *@
-            <li class="@(currentPage == 1 ? "disabled" : "")">
-                @if (currentPage == 1)
-                {
-                    <span>&laquo; Previous</span>
-                }
-                else
-                {
-                    @Html.ActionLink("« Previous", "Index", new { page = currentPage - 1, searchString = searchString, studyGroupId = studyGroupId })
-                }
-            </li>
-
-            @* Page Numbers *@
-            @for (int i = 1; i <= totalPages; i++)
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            @* Display success/error messages *@
+            @if (TempData["Success"] != null)
             {
-                <li class="@(i == currentPage ? "active" : "")">
-                    @Html.ActionLink(i.ToString(), "Index", new { page = i, searchString = searchString, studyGroupId = studyGroupId })
-                </li>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>Success!</strong> @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Error!</strong> @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             }
 
-            @* Next Button *@
-            <li class="@(currentPage == totalPages ? "disabled" : "")">
-                @if (currentPage == totalPages)
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Upcoming Sessions</h2>
+                @if (Session["UserID"] != null && Session["UserRole"]?.ToString() == "User")
                 {
-                    <span>Next &raquo;</span>
+                    @Html.ActionLink("Create New", "Create", null, new { @class = "btn btn-primary" })
                 }
-                else
-                {
-                    @Html.ActionLink("Next »", "Index", new { page = currentPage + 1, searchString = searchString, studyGroupId = studyGroupId })
-                }
-            </li>
-        </ul>
-    </div>
-}
+            </div>
 
-@if (totalItems == 0)
-{
-    <div class="alert alert-info">
-        <strong>No upcoming sessions found.</strong>
-        @if (!String.IsNullOrEmpty(searchString) || (studyGroupId.HasValue && studyGroupId.Value > 0))
-        {
-            <text>Try adjusting your filters.</text>
-        }
-        else
-        {
-            <text>Create a new session to get started!</text>
-        }
+            @* Search and Filter Form *@
+            @using (Html.BeginForm("Index", "Sessions", FormMethod.Get))
+            {
+                <div class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <input type="text"
+                                   name="searchString"
+                                   value="@searchString"
+                                   class="form-control"
+                                   placeholder="Search by study group, subject, or creator..." />
+                        </div>
+                        <div class="col-md-4">
+                            @Html.DropDownList("studyGroupId", (SelectList)ViewBag.StudyGroups, "All Study Groups", new { @class = "form-select" })
+                        </div>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-fill">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search me-1" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                                </svg>
+                                Search
+                            </button>
+                            @if (!String.IsNullOrEmpty(searchString) || (studyGroupId.HasValue && studyGroupId.Value > 0))
+                            {
+                                @Html.ActionLink("Clear", "Index", null, new { @class = "btn btn-outline-secondary" })
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* Results Summary *@
+            @if (totalItems > 0)
+            {
+                <div class="mb-3">
+                    <p class="text-muted mb-0">Showing <strong>@Model.Count()</strong> of <strong>@totalItems</strong> upcoming sessions</p>
+                </div>
+            }
+
+            @* Sessions Table *@
+            @if (totalItems > 0)
+            {
+                <div class="card shadow-sm border-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person me-1" viewBox="0 0 16 16">
+                                            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z" />
+                                        </svg>
+                                        Creator
+                                    </th>
+                                    <th>Study Group</th>
+                                    <th>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-event me-1" viewBox="0 0 16 16">
+                                            <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z" />
+                                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                                        </svg>
+                                        Date
+                                    </th>
+                                    <th>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock me-1" viewBox="0 0 16 16">
+                                            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                                        </svg>
+                                        Duration
+                                    </th>
+                                    <th>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people me-1" viewBox="0 0 16 16">
+                                            <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" />
+                                        </svg>
+                                        Attendees
+                                    </th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    bool isCreator = currentUserID.HasValue && item.CreatorUserID == currentUserID.Value;
+                                    bool isAttending = currentUserID.HasValue && item.Attendees != null && item.Attendees.Any(a => a.UserID == currentUserID.Value);
+                                    bool isFull = item.Attendees != null && item.Attendees.Count >= item.MaxAttendees;
+
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2"
+                                                     style="width: 32px; height: 32px; font-size: 14px; font-weight: 600;">
+                                                    @item.Creator.FirstName[0]
+                                                </div>
+                                                <strong>@item.Creator.FirstName @item.Creator.LastName</strong>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div>
+                                                <div class="fw-semibold">@item.StudyGroup.Name</div>
+                                                <small class="text-muted">@item.StudyGroup.Subject.Title</small>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div>
+                                                <div>@item.Date.ToString("MMM dd, yyyy")</div>
+                                                <small class="text-muted">@item.Date.ToString("h:mm tt")</small>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="badge bg-light text-dark">@item.Duration min</span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="badge @(isFull ? "bg-danger" : "bg-secondary")">
+                                                @(item.Attendees?.Count ?? 0) / @item.MaxAttendees
+                                            </span>
+                                            @if (isFull)
+                                            {
+                                                <span class="badge bg-warning text-dark ms-1">Full</span>
+                                            }
+                                        </td>
+                                        <td class="align-middle text-end">
+                                            <div class="d-flex justify-content-end gap-2">
+                                                @if (currentUserID.HasValue)
+                                                {
+                                                    if (isCreator)
+                                                    {
+                                                        if (!item.IsFinished)
+                                                        {
+                                                            @Html.ActionLink("Edit", "Edit", new { id = item.SessionID }, new { @class = "btn btn-sm btn-warning" })
+                                                        }
+
+                                                        @Html.ActionLink("Delete", "Delete", new { id = item.SessionID }, new { @class = "btn btn-sm btn-danger" })
+                                                        @Html.ActionLink("Details", "Details", new { id = item.SessionID }, new { @class = "btn btn-sm btn-primary" })
+                                                    }
+                                                    else if (isAttending)
+                                                    {
+                                                        using (Html.BeginForm("Leave", "Sessions", new { id = item.SessionID }, FormMethod.Post, new { style = "display:inline;" }))
+                                                        {
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to leave this session?');">Leave</button>
+                                                        }
+                                                        @Html.ActionLink("Details", "Details", new { id = item.SessionID }, new { @class = "btn btn-sm btn-primary" })
+                                                    }
+                                                    else if (isFull)
+                                                    {
+                                                        @Html.ActionLink("Details", "Details", new { id = item.SessionID }, new { @class = "btn btn-sm btn-primary" })
+                                                    }
+                                                    else
+                                                    {
+                                                        using (Html.BeginForm("Join", "Sessions", new { id = item.SessionID }, FormMethod.Post, new { style = "display:inline;" }))
+                                                        {
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-sm btn-success">Join</button>
+                                                        }
+                                                        @Html.ActionLink("Details", "Details", new { id = item.SessionID }, new { @class = "btn btn-sm btn-primary" })
+                                                    }
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            @* Pagination *@
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        @* Previous Button *@
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            @if (currentPage == 1)
+                            {
+                                <span class="page-link">Previous</span>
+                            }
+                            else
+                            {
+                                @Html.ActionLink("Previous", "Index", new { page = currentPage - 1, searchString = searchString, studyGroupId = studyGroupId }, new { @class = "page-link" })
+                            }
+                        </li>
+
+                        @* Page Numbers *@
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                @Html.ActionLink(i.ToString(), "Index", new { page = i, searchString = searchString, studyGroupId = studyGroupId }, new { @class = "page-link" })
+                            </li>
+                        }
+
+                        @* Next Button *@
+                        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            @if (currentPage == totalPages)
+                            {
+                                <span class="page-link">Next</span>
+                            }
+                            else
+                            {
+                                @Html.ActionLink("Next", "Index", new { page = currentPage + 1, searchString = searchString, studyGroupId = studyGroupId }, new { @class = "page-link" })
+                            }
+                        </li>
+                    </ul>
+                </nav>
+            }
+
+            @* Empty State *@
+            @if (totalItems == 0)
+            {
+                <div class="text-center py-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-calendar-x text-muted mb-3" viewBox="0 0 16 16">
+                        <path d="M6.146 7.146a.5.5 0 0 1 .708 0L8 8.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 9l1.147 1.146a.5.5 0 0 1-.708.708L8 9.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 9 6.146 7.854a.5.5 0 0 1 0-.708z" />
+                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                    </svg>
+                    <h4 class="text-muted">No upcoming sessions found</h4>
+                    <p class="text-muted">
+                        @if (!String.IsNullOrEmpty(searchString) || (studyGroupId.HasValue && studyGroupId.Value > 0))
+                        {
+                            <text>Try adjusting your filters to see more results.</text>
+                        }
+                        else
+                        {
+                            <text>Create a new session to get started!</text>
+                        }
+                    </p>
+                </div>
+            }
+        </div>
     </div>
-}
+</div>

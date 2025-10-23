@@ -42,5 +42,14 @@ namespace StudyGroups.Models
         public virtual StudyGroup StudyGroup { get; set; }
 
         public virtual ICollection<Rating> Ratings { get; set; }
+
+        [NotMapped]
+        public bool IsFinished
+        {
+            get
+            {
+                return Date.AddMinutes(Duration) < DateTime.Now;
+            }
+        }
     }
 }

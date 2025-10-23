@@ -1,82 +1,80 @@
 ﻿@model StudyGroups.Models.Session
-
 @{
     ViewBag.Title = "Create Session";
     bool isStudyGroupLocked = ViewBag.IsStudyGroupLocked != null && (bool)ViewBag.IsStudyGroupLocked;
-
 }
 
-<h2>Create Session</h2>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <h2 class="mb-4">Create Session</h2>
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">
-        @TempData["Error"]
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Error!</strong> @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (ViewBag.StudyGroupName != null)
+            {
+                <div class="alert alert-info">
+                    <strong>Creating session for:</strong> @ViewBag.StudyGroupName
+                    <br />
+                    <strong>Subject:</strong> @ViewBag.SubjectTitle
+                </div>
+            }
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.Date, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.Date, new { htmlAttributes = new { @class = "form-control", type = "datetime-local" } })
+                            @Html.ValidationMessageFor(model => model.Date, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.Duration, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.Duration, new { htmlAttributes = new { @class = "form-control", placeholder = "Duration in minutes" } })
+                            @Html.ValidationMessageFor(model => model.Duration, "", new { @class = "text-danger small" })
+                            <small class="text-muted">Enter duration in minutes</small>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.MaxAttendees, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.MaxAttendees, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.MaxAttendees, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.StudyGroupID, "Study Group", new { @class = "form-label" })
+                            @if (isStudyGroupLocked)
+                            {
+                                <div class="form-control-plaintext">@ViewBag.StudyGroupName</div>
+                                @Html.HiddenFor(model => model.StudyGroupID)
+                            }
+                            else
+                            {
+                                @Html.DropDownList("StudyGroupID", null, htmlAttributes: new { @class = "form-select" })
+                                @Html.ValidationMessageFor(model => model.StudyGroupID, "", new { @class = "text-danger small" })
+                            }
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Create</button>
+                            @Html.ActionLink("Cancel", "Index", null, new { @class = "btn btn-outline-secondary" })
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
-}
-
-
-@if (ViewBag.StudyGroupName != null)
-{
-    <div class="alert alert-info">
-        Creating session for study group: <strong>@ViewBag.StudyGroupName</strong>
-        <br />
-        Subject: <strong>@ViewBag.SubjectTitle</strong>
-    </div>
-}
-
-@using (Html.BeginForm())
-{
-    @Html.AntiForgeryToken()
-
-    <div class="form-horizontal">
-        <h4>Session</h4>
-        <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.Date, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Date, new { htmlAttributes = new { @class = "form-control", type = "datetime-local" } })
-                @Html.ValidationMessageFor(model => model.Date, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.Duration, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Duration, new { htmlAttributes = new { @class = "form-control", placeholder = "Duration in minutes" } })
-                @Html.ValidationMessageFor(model => model.Duration, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.StudyGroupID, "Study Group", htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @if (isStudyGroupLocked)
-                {
-                    <p class="form-control-static">@ViewBag.StudyGroupName</p>
-                    @Html.HiddenFor(model => model.StudyGroupID)
-                }
-                else
-                {
-                    @Html.DropDownList("StudyGroupID", null, htmlAttributes: new { @class = "form-control" })
-                    @Html.ValidationMessageFor(model => model.StudyGroupID, "", new { @class = "text-danger" })
-                }
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-primary" />
-                @Html.ActionLink("Cancel", "Index", null, new { @class = "btn btn-default" })
-            </div>
-        </div>
-    </div>
-}
-
-<div>
-    @Html.ActionLink("Back to List", "Index")
 </div>
 
 @section Scripts {

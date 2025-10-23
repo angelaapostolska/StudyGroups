@@ -40,7 +40,7 @@ namespace StudyGroups.Controllers
                 ViewBag.StudyGroups = new SelectList(Enumerable.Empty<SelectListItem>());
             }
 
-            DateTime now = DateTime.Now;
+            //DateTime now = DateTime.Now;
 
             var sessions = db.Sessions
                 .Include(s => s.Creator)
@@ -78,9 +78,10 @@ namespace StudyGroups.Controllers
             }
 
             // order by date and filter only upcoming
-            sessions = sessions.OrderBy(s => s.Date);
-            var allSessions = sessions.ToList();
-            var upcomingSessions = allSessions.Where(s => s.Date.AddMinutes(s.Duration) > now).ToList();
+            //sessions = sessions.OrderBy(s => s.Date);
+            //var allSessions = sessions.ToList();
+            //var upcomingSessions = allSessions.Where(s => s.Date.AddMinutes(s.Duration) > now).ToList();
+            var upcomingSessions = sessions.Where(s => !s.IsFinished).OrderBy(s => s.Date).ToList();
 
             // pagination
             int pageSize = 10;
@@ -199,10 +200,21 @@ namespace StudyGroups.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Session session = db.Sessions.Find(id);
+            Session session = db.Sessions
+                .Include(s => s.StudyGroup.Subject)
+                .FirstOrDefault(s => s.SessionID == id);
+
+
             if (session == null)
             {
                 return HttpNotFound();
+            }
+
+            // finished sessions cannot be edited
+            if (session.IsFinished)
+            {
+                TempData["Error"] = "Cannot edit a session that has already finished.";
+                return RedirectToAction("Details", new { id = id });
             }
 
             //  only the creator can edit
@@ -212,6 +224,9 @@ namespace StudyGroups.Controllers
                 TempData["Error"] = "You can only edit sessions you created.";
                 return RedirectToAction("Details", new { id = id });
             }
+
+            ViewBag.StudyGroupName = session.StudyGroup?.Name;
+            ViewBag.SubjectTitle = session.StudyGroup?.Subject?.Title;
 
             ViewBag.StudyGroupID = new SelectList(
                 db.StudyGroups.Where(sg => sg.CreatorUserID == currentUserID),
@@ -234,6 +249,12 @@ namespace StudyGroups.Controllers
             if (originalSession == null)
             {
                 return HttpNotFound();
+            }
+
+            if (originalSession.IsFinished)
+            {
+                TempData["Error"] = "Cannot edit a session that has already finished.";
+                return RedirectToAction("Details", new { id = session.SessionID });
             }
 
             if (originalSession.CreatorUserID != currentUserID)

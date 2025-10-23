@@ -5,213 +5,320 @@
     bool isCreator = currentUserID.HasValue && Model.CreatorUserID == currentUserID.Value;
     bool isAttending = currentUserID.HasValue && Model.Attendees != null && Model.Attendees.Any(a => a.UserID == currentUserID.Value);
     bool isFull = Model.Attendees != null && Model.Attendees.Count >= Model.MaxAttendees;
+    bool isFinished = Model.IsFinished;
 }
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h2>Session Details</h2>
-    <div>
-        @if (currentUserID.HasValue)
-        {
-            if (isCreator)
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            @* Display success/error messages *@
+            @if (TempData["Success"] != null)
             {
-                @Html.ActionLink("Edit", "Edit", new { id = Model.SessionID }, new { @class = "btn btn-default" })
-                <text> | </text>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>Success!</strong> @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             }
-            else if (isAttending)
+            @if (TempData["Error"] != null)
             {
-                using (Html.BeginForm("Leave", "Sessions", new { id = Model.SessionID }, FormMethod.Post, new { style = "display:inline;" }))
-                {
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to leave this session?');">Leave Session</button>
-                }
-                <text> | </text>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Error!</strong> @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             }
-            else if (isFull)
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Session Details</h2>
+                    @if (isFinished)
+                    {
+                        <span class="badge bg-secondary">Finished</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Upcoming</span>
+                    }
+                </div>
+                <div class="d-flex gap-2">
+                    @if (currentUserID.HasValue && !isFinished)
+                    {
+                        if (isCreator)
+                        {
+                            @Html.ActionLink("Edit", "Edit", new { id = Model.SessionID }, new { @class = "btn btn-warning" })
+                        }
+                        else if (isAttending)
+                        {
+                            using (Html.BeginForm("Leave", "Sessions", new { id = Model.SessionID }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to leave this session?');">Leave Session</button>
+                            }
+                        }
+                        else if (isFull)
+                        {
+                            <button type="button" class="btn btn-secondary" disabled>Session Full</button>
+                        }
+                        else
+                        {
+                            using (Html.BeginForm("Join", "Sessions", new { id = Model.SessionID }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-success">Join Session</button>
+                            }
+                        }
+                    }
+                    @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-outline-secondary" })
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person text-primary me-2" viewBox="0 0 16 16">
+                                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z" />
+                                </svg>
+                                <h6 class="mb-0 text-muted">Creator</h6>
+                            </div>
+                            <p class="mb-0 fs-5">@Model.Creator.FirstName @Model.Creator.LastName</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-book text-primary me-2" viewBox="0 0 16 16">
+                                    <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z" />
+                                </svg>
+                                <h6 class="mb-0 text-muted">Study Group</h6>
+                            </div>
+                            <p class="mb-0 fs-5">@Model.StudyGroup.Name</p>
+                            <small class="text-muted">@Model.StudyGroup.Subject.Title</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-people text-primary me-2" viewBox="0 0 16 16">
+                                    <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" />
+                                </svg>
+                                <h6 class="mb-0 text-muted">Attendees</h6>
+                            </div>
+                            <p class="mb-0 fs-5">
+                                <span class="badge @(isFull ? "bg-danger" : "bg-secondary") fs-6">
+                                    @(Model.Attendees?.Count ?? 0) / @Model.MaxAttendees
+                                </span>
+                                @if (isFull)
+                                {
+                                    <span class="badge bg-warning text-dark ms-2">Full</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row g-3 mb-4">
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-calendar-event text-primary me-2" viewBox="0 0 16 16">
+                                    <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z" />
+                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                                </svg>
+                                <h6 class="mb-0 text-muted">Date & Time</h6>
+                            </div>
+                            <p class="mb-0 fs-5">@Model.Date.ToString("MMM dd, yyyy")</p>
+                            <small class="text-muted">@Model.Date.ToString("h:mm tt")</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-clock text-primary me-2" viewBox="0 0 16 16">
+                                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                                </svg>
+                                <h6 class="mb-0 text-muted">Duration</h6>
+                            </div>
+                            <p class="mb-0 fs-5">@Model.Duration minutes</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* Attendees List *@
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Attendees</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Attendees != null && Model.Attendees.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var attendee in Model.Attendees)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2"
+                                                         style="width: 32px; height: 32px; font-size: 14px; font-weight: 600;">
+                                                        @attendee.FirstName[0]@attendee.LastName[0]
+                                                    </div>
+                                                    @attendee.FirstName @attendee.LastName
+                                                </div>
+                                            </td>
+                                            <td>@attendee.Email</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-people text-muted mb-3" viewBox="0 0 16 16">
+                                <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" />
+                            </svg>
+                            <p class="text-muted mb-0">No attendees yet.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Rating Section *@
+            @if (ViewBag.HasSessionEnded)
             {
-                <button type="button" class="btn btn-default" disabled>Session Full</button>
-                <text> | </text>
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Rate This Session</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Session["UserID"] == null)
+                        {
+                            <p class="text-muted mb-0">Please log in to rate this session.</p>
+                        }
+                        else if (ViewBag.HasAlreadyRated)
+                        {
+                            <div class="alert alert-info mb-0">
+                                You have already rated this session.
+                            </div>
+                        }
+                        else if (ViewBag.CanRate)
+                        {
+                            using (Html.BeginForm("CreateFromSession", "Ratings", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("sessionId", Model.SessionID)
+
+                                <div class="mb-3">
+                                    <label for="score" class="form-label">Your Rating (1-5 stars):</label>
+                                    <select name="score" id="score" class="form-select" style="width: 300px;" required>
+                                        <option value="">Select rating...</option>
+                                        <option value="1">⭐ 1 - Poor</option>
+                                        <option value="2">⭐⭐ 2 - Fair</option>
+                                        <option value="3">⭐⭐⭐ 3 - Good</option>
+                                        <option value="4">⭐⭐⭐⭐ 4 - Very Good</option>
+                                        <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Submit Rating</button>
+                            }
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning mb-0">
+                                Only the session creator and attendees can leave ratings.
+                            </div>
+                        }
+                    </div>
+                </div>
             }
             else
             {
-                using (Html.BeginForm("Join", "Sessions", new { id = Model.SessionID }, FormMethod.Post, new { style = "display:inline;" }))
-                {
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-success">Join Session</button>
-                }
-                <text> | </text>
-            }
-        }
-        @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-default" })
-    </div>
-</div>
-
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["Success"]
-    </div>
-}
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">
-        @TempData["Error"]
-    </div>
-}
-
-<div>
-    <h4>Session Information</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.Creator.FirstName)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Creator.FirstName) @Html.DisplayFor(model => model.Creator.LastName)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.StudyGroup.Name)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.StudyGroup.Name)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Date)
-        </dt>
-        <dd>
-            @Model.Date.ToString("MM/dd/yyyy HH:mm")
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Duration)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Duration) minutes
-        </dd>
-        <dt>
-            Attendees
-        </dt>
-        <dd>
-            @(Model.Attendees?.Count ?? 0) / @Model.MaxAttendees
-        </dd>
-    </dl>
-</div>
-
-@* Attendees List *@
-@if (Model.Attendees != null && Model.Attendees.Any())
-{
-    <div style="margin-top: 30px;">
-        <h4>Attendees</h4>
-        <hr />
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var attendee in Model.Attendees)
-                {
-                    <tr>
-                        <td>@attendee.FirstName @attendee.LastName</td>
-                        <td>@attendee.Email</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
-
-@* Rating Section *@
-@if (ViewBag.HasSessionEnded)
-{
-    <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-radius: 5px;">
-        <h4>Rate This Session</h4>
-        <hr />
-
-        @if (Session["UserID"] == null)
-        {
-            <p class="text-muted">Please log in to rate this session.</p>
-        }
-        else if (ViewBag.HasAlreadyRated)
-        {
-            <div class="alert alert-info">
-                You have already rated this session.
-            </div>
-        }
-        else if (ViewBag.CanRate)
-        {
-            using (Html.BeginForm("CreateFromSession", "Ratings", FormMethod.Post))
-            {
-                @Html.AntiForgeryToken()
-                @Html.Hidden("sessionId", Model.SessionID)
-
-                <div class="form-group">
-                    <label for="score">Your Rating (1-5 stars):</label>
-                    <select name="score" id="score" class="form-control" style="width: 200px;" required>
-                        <option value="">Select rating...</option>
-                        <option value="1">⭐ 1 - Poor</option>
-                        <option value="2">⭐⭐ 2 - Fair</option>
-                        <option value="3">⭐⭐⭐ 3 - Good</option>
-                        <option value="4">⭐⭐⭐⭐ 4 - Very Good</option>
-                        <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
-                    </select>
+                <div class="alert alert-warning">
+                    <strong>Note:</strong> Ratings can be submitted after the session ends.
                 </div>
-
-                <button type="submit" class="btn btn-primary">Submit Rating</button>
             }
-        }
-        else
-        {
-            <div class="alert alert-warning">
-                Only the session creator and attendees can leave ratings.
-            </div>
-        }
-    </div>
-}
-else
-{
-    <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-radius: 5px;">
-        <p class="text-muted">
-            <strong>Note:</strong> Ratings can be submitted after the session ends.
-        </p>
-    </div>
-}
 
-@* Display existing ratings *@
-@if (Model.Ratings != null && Model.Ratings.Any())
-{
-    <div style="margin-top: 30px;">
-        <h4>Session Ratings</h4>
-        <hr />
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Rating</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var rating in Model.Ratings)
-                {
-                    <tr>
-                        <td>@rating.User.FirstName @rating.User.LastName</td>
-                        <td>
-                            @for (int i = 0; i < rating.Score; i++)
-                            {
-                                <span>⭐</span>
-                            }
-                            <span>(@rating.Score/5)</span>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+            @* Display existing ratings *@
+            @if (Model.Ratings != null && Model.Ratings.Any())
+            {
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Session Ratings</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-3">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Rating</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rating in Model.Ratings)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2"
+                                                         style="width: 32px; height: 32px; font-size: 14px; font-weight: 600;">
+                                                        @rating.User.FirstName[0]@rating.User.LastName[0]
+                                                    </div>
+                                                    @rating.User.FirstName @rating.User.LastName
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @for (int i = 0; i < rating.Score; i++)
+                                                {
+                                                    <span>⭐</span>
+                                                }
+                                                <span class="text-muted ms-1">(@rating.Score/5)</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
 
-        @if (Model.Ratings.Count > 0)
-        {
-            var averageRating = Model.Ratings.Average(r => r.Score);
-            <p><strong>Average Rating:</strong> @averageRating.ToString("F1") / 5.0 ⭐</p>
-        }
+                        @if (Model.Ratings.Count > 0)
+                        {
+                            var averageRating = Model.Ratings.Average(r => r.Score);
+                            <div class="alert alert-info mb-0">
+                                <strong>Average Rating:</strong> @averageRating.ToString("F1") / 5.0 ⭐
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+        </div>
     </div>
-}
+</div>

@@ -133,24 +133,37 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var session in Model.Sessions.OrderBy(s => s.Date))
+                                        @if (Model.Sessions != null && Model.Sessions.Any())
                                         {
-                                            <tr>
-                                                <td>@session.Date.ToString("MMM dd, yyyy hh:mm tt")</td>
-                                                <td>@session.Duration min</td>
-                                                <td>
-                                                    @if (session.Creator != null)
-                                                    {
-                                                        @session.Creator.FirstName @session.Creator.LastName
-                                                    }
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-secondary">@(session.Attendees != null ? session.Attendees.Count : 0) / @session.MaxAttendees</span>
-                                                </td>
-                                                <td>
-                                                    @Html.ActionLink("Details", "Details", "Sessions", new { id = session.SessionID }, new { @class = "btn btn-sm btn-primary" })
-                                                </td>
-                                            </tr>
+                                            foreach (var session in Model.Sessions.OrderBy(s => s.Date))
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @session.Date.ToString("MMM dd, yyyy hh:mm tt")
+                                                        @if (session.IsFinished)
+                                                        {
+                                                            <span class="badge bg-secondary ms-2">Finished</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-success ms-2">Upcoming</span>
+                                                        }
+                                                    </td>
+                                                    <td>@session.Duration min</td>
+                                                    <td>
+                                                        @if (session.Creator != null)
+                                                        {
+                                                            @session.Creator.FirstName @session.Creator.LastName
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-secondary">@(session.Attendees != null ? session.Attendees.Count : 0) / @session.MaxAttendees</span>
+                                                    </td>
+                                                    <td>
+                                                        @Html.ActionLink("Details", "Details", "Sessions", new { id = session.SessionID }, new { @class = "btn btn-sm btn-primary" })
+                                                    </td>
+                                                </tr>
+                                            }
                                         }
                                     </tbody>
                                 </table>
