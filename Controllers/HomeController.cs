@@ -71,9 +71,15 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Index");
             }
 
-            // TODO: Build admin dashboard view model with site-wide stats
+            var viewModel = new AdminDashboardViewModel
+            {
+                TotalUsers = db.Users.Count(),
+                TotalStudyGroups = db.StudyGroups.Count(),
+                TotalSessions = db.Sessions.Count(),
+                TotalSubjects = db.Subjects.Count()
+            };
 
-            return View();
+            return View(viewModel);
         }
 
         protected override void Dispose(bool disposing)

@@ -137,6 +137,7 @@
     <Compile Include="Controllers\SessionsController.cs" />
     <Compile Include="Controllers\StudyGroupsController.cs" />
     <Compile Include="Controllers\SubjectsController.cs" />
+    <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="DAL\StudyGroupContext.cs" />
     <Compile Include="DatabaseSeeder.cs" />
     <Compile Include="Filters\SessionAuthorizeAttribute.cs" />
@@ -168,12 +169,14 @@
       <DependentUpon>202510161845227_AddCretaedDateToUser.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\AdminDashboardViewModel.cs" />
     <Compile Include="Models\Rating.cs" />
     <Compile Include="Models\Session.cs" />
     <Compile Include="Models\StudyGroup.cs" />
     <Compile Include="Models\Subject.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\UserDashboardViewModel.cs" />
+    <Compile Include="Models\UserListViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -252,6 +255,8 @@
     <Content Include="Views\Account\Register.cshtml" />
     <Content Include="Views\Shared\Unauthorized.cshtml" />
     <Content Include="Views\Seeder\Index.cshtml" />
+    <Content Include="Views\Home\AdminDashboard.cshtml" />
+    <Content Include="Views\Users\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
