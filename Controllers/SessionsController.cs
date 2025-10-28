@@ -170,7 +170,7 @@ namespace StudyGroups.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [SessionAuthorize(Roles = "User")]
-        public ActionResult Create([Bind(Include = "SessionID,Date,Duration,StudyGroupID")] Session session)
+        public ActionResult Create([Bind(Include = "SessionID,Date,Duration, MaxAttendees, StudyGroupID")] Session session)
         {
             if (ModelState.IsValid)
             {
@@ -222,7 +222,7 @@ namespace StudyGroups.Controllers
             if (session.CreatorUserID != currentUserID)
             {
                 TempData["Error"] = "You can only edit sessions you created.";
-                return RedirectToAction("Details", new { id = id });
+                return RedirectToAction("Unauthorized", "Home");
             }
 
             ViewBag.StudyGroupName = session.StudyGroup?.Name;
@@ -241,7 +241,7 @@ namespace StudyGroups.Controllers
         // POST: Sessions/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "SessionID,Date,Duration,StudyGroupID,CreatorUserID")] Session session)
+        public ActionResult Edit([Bind(Include = "SessionID,Date,Duration,MaxAttendees,StudyGroupID,CreatorUserID")] Session session)
         {
             int currentUserID = (int)System.Web.HttpContext.Current.Session["UserID"];
             var originalSession = db.Sessions.AsNoTracking().FirstOrDefault(s => s.SessionID == session.SessionID);
@@ -300,7 +300,7 @@ namespace StudyGroups.Controllers
             if (session.CreatorUserID != currentUserID)
             {
                 TempData["Error"] = "You can only delete sessions you created.";
-                return RedirectToAction("Details", new { id = id });
+                return RedirectToAction("Unauthorized", "Home");
             }
 
             return View(session);
@@ -380,7 +380,7 @@ namespace StudyGroups.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [SessionAuthorize(Roles = "User")]
-        public ActionResult CreateForStudyGroup([Bind(Include = "SessionID,Date,Duration,StudyGroupID")] Session session)
+        public ActionResult CreateForStudyGroup([Bind(Include = "SessionID,Date,Duration,MaxAttendees,StudyGroupID")] Session session)
         {
             StudyGroup studyGroup = db.StudyGroups
                .Include(sg => sg.Subject)

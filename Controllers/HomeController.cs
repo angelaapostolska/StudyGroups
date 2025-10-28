@@ -82,6 +82,13 @@ namespace StudyGroups.Controllers
             return View(viewModel);
         }
 
+
+        [AllowAnonymous]
+        public ActionResult Unauthorized()
+        {
+            return View();
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)

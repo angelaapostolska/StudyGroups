@@ -187,7 +187,7 @@ namespace StudyGroups.Controllers
             if (studyGroup.CreatorUserID != currentUserID)
             {
                 TempData["Error"] = "You can only edit study groups you created.";
-                return RedirectToAction("Details", new { id = id });
+                return RedirectToAction("Unauthorized", "Home");
             }
 
             ViewBag.SubjectID = new SelectList(db.Subjects, "SubjectID", "Title", studyGroup.SubjectID);
@@ -211,13 +211,14 @@ namespace StudyGroups.Controllers
             if (originalGroup.CreatorUserID != currentUserID)
             {
                 TempData["Error"] = "You can only edit study group you created.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Unauthorized", "Home");
             }
 
             if (ModelState.IsValid)
             {
-                studyGroup.CreatorUserID = originalGroup.CreatorUserID;
-                db.Entry(studyGroup).State = EntityState.Modified;
+                originalGroup.Name = studyGroup.Name;
+                originalGroup.Description = studyGroup.Description;
+                originalGroup.SubjectID = studyGroup.SubjectID;
                 db.SaveChanges();
                 TempData["SuccessMessage"] = "Study group updated successfully!";
                 return RedirectToAction("Index");
@@ -245,7 +246,7 @@ namespace StudyGroups.Controllers
             if (studyGroup.CreatorUserID != currentUserID)
             {
                 TempData["Error"] = "You can only delete study groups you created.";
-                return RedirectToAction("Details", new {id = id});
+                return RedirectToAction("Unauthorized", "Home");
             }
 
             return View(studyGroup);
@@ -268,7 +269,7 @@ namespace StudyGroups.Controllers
             if (studyGroup.CreatorUserID != currentUserID)
             {
                 TempData["Error"] = "You can only delete study groups you created. ";
-                return RedirectToAction("Index");
+                return RedirectToAction("Unauthorized", "Home");
             }
 
             db.StudyGroups.Remove(studyGroup);
@@ -364,7 +365,7 @@ namespace StudyGroups.Controllers
                 (studyGroup.Members != null && studyGroup.Members.Any(m => m.UserID == currentUserID)))
             {
                 TempData["Error"] = "You are already a member or the creator of this study group.";
-                return RedirectToAction("Details", new { id = id });
+                return RedirectToAction("Unauthorized", "Home");
             }
 
             var user = db.Users.Find(currentUserID);
@@ -400,7 +401,7 @@ namespace StudyGroups.Controllers
             {
                 studyGroup.Members.Remove(user);
                 db.SaveChanges();
-                TempData["SuccessMessage"] = $"You joined '{studyGroup.Name}' successfully!";
+                TempData["SuccessMessage"] = $"You left '{studyGroup.Name}' successfully!";
             }
             return RedirectToAction("Index");
         }
