@@ -290,7 +290,13 @@ namespace StudyGroups.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Session session = db.Sessions.Find(id);
+            Session session = db.Sessions
+                .Include(s => s.StudyGroup)
+                .Include(s => s.StudyGroup.Subject)
+                .Include(s => s.Creator)
+                .Include(s => s.Attendees)
+                .FirstOrDefault(s => s.SessionID == id);
+
             if (session == null)
             {
                 return HttpNotFound();
@@ -301,6 +307,13 @@ namespace StudyGroups.Controllers
             {
                 TempData["Error"] = "You can only delete sessions you created.";
                 return RedirectToAction("Unauthorized", "Home");
+            }
+
+            // Check if session is upcoming (not finished)
+            if (!session.IsFinished)
+            {
+                TempData["Error"] = "Cannot delete this session. Only finished sessions can be deleted.";
+                TempData["CannotDelete"] = true; 
             }
 
             return View(session);
@@ -324,6 +337,13 @@ namespace StudyGroups.Controllers
             {
                 TempData["Error"] = "You can only delete sessions you created.";
                 return RedirectToAction("Index");
+            }
+
+            // Check if session is upcoming 
+            if (!session.IsFinished)
+            {
+                TempData["Error"] = "Cannot delete this session. Only finished sessions can be deleted.";
+                return RedirectToAction("Details", new { id = id });
             }
 
             db.Sessions.Remove(session);
