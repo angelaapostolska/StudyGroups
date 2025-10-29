@@ -235,7 +235,14 @@ namespace StudyGroups.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            StudyGroup studyGroup = db.StudyGroups.Find(id);
+            StudyGroup studyGroup = db.StudyGroups
+                .Include(sg => sg.Sessions)
+                .Include(sg => sg.Members)
+                .Include(sg => sg.Creator)
+                .Include(sg => sg.Subject)
+                   .FirstOrDefault(sg => sg.StudyGroupID == id);
+
+
             if (studyGroup == null)
             {
                 return HttpNotFound();
@@ -249,6 +256,17 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Unauthorized", "Home");
             }
 
+            // check for upcoming sessions
+            var upcomingSessions = studyGroup.Sessions
+                .Where(s => !s.IsFinished)
+                .ToList();
+
+            if (upcomingSessions.Any())
+            {
+                TempData["Error"] = $"Cannot delete this study group. It has {upcomingSessions.Count} upcoming session(s). Please delete or complete those sessions first.";
+                TempData["CannotDelete"] = true;
+            }
+
             return View(studyGroup);
         }
 
@@ -257,7 +275,9 @@ namespace StudyGroups.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            StudyGroup studyGroup = db.StudyGroups.Find(id);
+            StudyGroup studyGroup = db.StudyGroups
+                .Include(sg => sg.Sessions)
+                .FirstOrDefault(sg => sg.StudyGroupID == id);
 
             if (studyGroup == null) 
             {
@@ -270,6 +290,17 @@ namespace StudyGroups.Controllers
             {
                 TempData["Error"] = "You can only delete study groups you created. ";
                 return RedirectToAction("Unauthorized", "Home");
+            }
+
+            // check for upcoming sessions
+            var upcomingSessions = studyGroup.Sessions
+                .Where(s => !s.IsFinished)
+                .ToList();
+
+            if (upcomingSessions.Any())
+            {
+                TempData["Error"] = $"Cannot delete this study group. It has {upcomingSessions.Count} upcoming session(s).";
+                return RedirectToAction("Details", new { id = id });
             }
 
             db.StudyGroups.Remove(studyGroup);
