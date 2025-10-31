@@ -25,20 +25,19 @@ namespace StudyGroups.Controllers
         {
             if (ModelState.IsValid)
             {
-                // check if the email already exists
+                
                 if (db.Users.Any(u => u.Email == user.Email))
                 {
                     ModelState.AddModelError("Email", "Email already registered.");
                     return View(user);
                 }
 
-                //set default role to user
                 user.Role = "User";
                 user.JoinedDate = DateTime.Now;
                 db.Users.Add(user);
                 db.SaveChanges();
 
-                // auto login after registration
+             
                 Session["UserID"] = user.UserID;
                 Session["Username"] = user.FirstName + " " + user.LastName;
                 Session["UserRole"] = user.Role;
@@ -60,17 +59,17 @@ namespace StudyGroups.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login (string email, string password)
         {
-            //extract the user's credentials from the db
+           
             var user = db.Users.FirstOrDefault(u => u.Email == email && u.Password == password);
 
             if (user != null)
             {
-                // store the users info in session
+            
                 Session["UserID"] = user.UserID;
                 Session["Username"] = user.FirstName + " " + user.LastName;
                 Session["UserRole"] = user.Role;
 
-                // redriect both admin and user to home page
+               
                 return RedirectToAction("Index", "Home");
 
             }

@@ -40,7 +40,7 @@ namespace StudyGroups.Controllers
                 ViewBag.StudyGroups = new SelectList(Enumerable.Empty<SelectListItem>());
             }
 
-            //DateTime now = DateTime.Now;
+    
 
             var sessions = db.Sessions
                 .Include(s => s.Creator)
@@ -51,7 +51,7 @@ namespace StudyGroups.Controllers
                 .AsEnumerable(); 
 
        
-            // user is the member of the study group where the session belongs, or user is the creator
+            // user is the member of the study group where the session belongs or user is the creator
             if (currentUserID.HasValue)
             {
                 sessions = sessions.Where(s =>
@@ -60,7 +60,6 @@ namespace StudyGroups.Controllers
                 );
             }
 
-            // search filtering
             if (!String.IsNullOrEmpty(searchString))
             {
                 sessions = sessions.Where(s =>
@@ -77,13 +76,10 @@ namespace StudyGroups.Controllers
                 sessions = sessions.Where(s => s.StudyGroupID == studyGroupId.Value);
             }
 
-            // order by date and filter only upcoming
-            //sessions = sessions.OrderBy(s => s.Date);
-            //var allSessions = sessions.ToList();
-            //var upcomingSessions = allSessions.Where(s => s.Date.AddMinutes(s.Duration) > now).ToList();
+
             var upcomingSessions = sessions.Where(s => !s.IsFinished).OrderBy(s => s.Date).ToList();
 
-            // pagination
+         
             int pageSize = 10;
             int pageNumber = (page ?? 1);
 
@@ -127,7 +123,6 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            // calculate whether the session has ended yet
             DateTime sessionEndTime = session.Date.AddMinutes(session.Duration);
             ViewBag.HasSessionEnded = DateTime.Now > sessionEndTime;
 
@@ -309,7 +304,7 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Unauthorized", "Home");
             }
 
-            // Check if session is upcoming (not finished)
+            // upcoming sessions cannot be deleted
             if (!session.IsFinished)
             {
                 TempData["Error"] = "Cannot delete this session. Only finished sessions can be deleted.";
@@ -339,7 +334,7 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Check if session is upcoming 
+            // upcoming sessions cannot be deleted
             if (!session.IsFinished)
             {
                 TempData["Error"] = "Cannot delete this session. Only finished sessions can be deleted.";
@@ -370,7 +365,6 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            // check if the current user is creator or member
             int currentUserID = (int)Session["UserID"];
             bool isCreator = studyGroup.CreatorUserID == currentUserID;
             bool isMember = studyGroup.Members != null && studyGroup.Members.Any(m => m.UserID == currentUserID);
@@ -387,7 +381,7 @@ namespace StudyGroups.Controllers
                 StudyGroupID = studyGroup.StudyGroupID
             };
 
-            // pass the study group details to the view
+
             ViewBag.StudyGroupName = studyGroup.Name;
             ViewBag.SubjectTitle = studyGroup.Subject.Title;
             ViewBag.StudyGroupID = studyGroup.StudyGroupID;
@@ -422,7 +416,7 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Details", "StudyGroups", new { id = session.StudyGroupID });
             }
 
-            // validation check for time overlapping between sessions
+            // time overlapping between sessions is not allowed in one study group
             DateTime sessionEndTime = session.Date.AddMinutes(session.Duration);
 
             var existingSessions = db.Sessions
@@ -445,7 +439,7 @@ namespace StudyGroups.Controllers
 
             if (ModelState.IsValid)
             {
-                // The creator is the current logged in user
+              
                 session.CreatorUserID = (int)Session["UserID"];
 
                 db.Sessions.Add(session);
@@ -453,7 +447,7 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Reload study group info if validation fails
+           
             ViewBag.StudyGroupName = studyGroup.Name;
             ViewBag.SubjectTitle = studyGroup.Subject.Title;
             ViewBag.StudyGroupID = studyGroup.StudyGroupID;
@@ -483,21 +477,20 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            // Check if user is the creator
+
             if (session.CreatorUserID == currentUserID)
             {
                 TempData["Error"] = "You cannot join your own session.";
                 return RedirectToAction("Details", new { id });
             }
 
-            // Check if already attending
+       
             if (session.Attendees.Any(a => a.UserID == currentUserID))
             {
                 TempData["Error"] = "You are already attending this session.";
                 return RedirectToAction("Details", new { id });
             }
 
-            // Check if session is full
             if (session.Attendees.Count >= session.MaxAttendees)
             {
                 TempData["Error"] = "This session is full.";

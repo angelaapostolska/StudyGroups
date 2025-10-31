@@ -7,7 +7,7 @@
         <div class="col-lg-6 col-md-8">
             <h2 class="mb-4 text-danger">Delete Study Group</h2>
 
-            @* Show error if it exists *@
+  
             @if (TempData["Error"] != null)
             {
                 <div class="alert alert-danger" role="alert">
@@ -86,7 +86,7 @@
                     {
                         @Html.AntiForgeryToken()
                         <div class="d-flex gap-2 mt-4">
-                            @* Disable delete button if there's an error *@
+                           
                             @if (TempData["CannotDelete"] != null)
                             {
                                 <button type="button" class="btn btn-danger" disabled>Delete</button>

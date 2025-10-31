@@ -182,7 +182,7 @@ namespace StudyGroups.Controllers
         {
             int currentUserID = (int)Session["UserID"];
 
-            // verifying if the session has ended
+          
             var session = db.Sessions
                 .Include(s => s.Attendees)
                 .FirstOrDefault(s => s.SessionID == sessionId);
@@ -199,7 +199,6 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Details", "Sessions", new { id = sessionId });
             }
 
-            // check if the logged in user is creator or attendee
             bool isCreator = session.CreatorUserID == currentUserID;
             bool isAttendee = session.Attendees.Any(a => a.UserID == currentUserID);
 
@@ -209,14 +208,13 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Details", "Sessions", new { id = sessionId });
             }
 
-            // check if the logged in user has already voted
             if (db.Ratings.Any(r => r.SessionID == sessionId && r.UserID == currentUserID))
             {
                 TempData["Error"] = "You have already rated this session.";
                 return RedirectToAction("Details", "Sessions", new { id = sessionId });
             }
 
-            // create the rating
+  
             var rating = new Rating
             {
                 Score = score,

@@ -24,7 +24,6 @@ namespace StudyGroups.Controllers
         {
             int? currentUserID = (int?)Session["UserID"];
 
-            //TempData["Debug"] = $"Filter: {filter}, SearchString: {searchString}, UserID: {currentUserID}";
 
             ViewBag.Subjects = new SelectList(db.Subjects.OrderBy(s => s.Title), "SubjectID", "Title", subjectId);
 
@@ -34,7 +33,7 @@ namespace StudyGroups.Controllers
                 .Include(s => s.Subject)
                 .Include(s => s.Members);
 
-            //search querying 
+           
             if (!String.IsNullOrEmpty(searchString))
             {
                 studyGroups = studyGroups.Where(s => s.Name.Contains(searchString)
@@ -42,13 +41,12 @@ namespace StudyGroups.Controllers
                                                 || s.Subject.Title.Contains(searchString));
             }
 
-            // subject filtering
+     
             if (subjectId.HasValue && subjectId.Value > 0)
             {
                 studyGroups = studyGroups.Where(s => s.SubjectID == subjectId.Value);
             }
 
-            // category filter
             if (String.IsNullOrEmpty(filter))
             {
                 filter = "all";
@@ -74,12 +72,12 @@ namespace StudyGroups.Controllers
                         break;
                     case "all":
                     default:
-                        // Show all groups
+                        // Show all 
                         break;
                 }
             }
 
-            // pagination
+      
             int pageSize = 10;
             int pageNumber = (page ?? 1);
 
@@ -126,14 +124,14 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            // check if user is creator or member
+          
             bool isGroupCreator = studyGroup.CreatorUserID == currentUserID;
             bool isGroupMember = studyGroup.Members != null &&
                                 studyGroup.Members.Any(m => m.UserID == currentUserID);
 
             if (!isGroupCreator && !isGroupMember)
             {
-                // Non-members cannot see any sessions
+                // non-members cannot see any sessions
                 studyGroup.Sessions = new List<Session>();
             }
 
@@ -156,7 +154,7 @@ namespace StudyGroups.Controllers
         {
             if (ModelState.IsValid)
             {
-                //the creator is the current logged in user
+  
                 studyGroup.CreatorUserID = (int)Session["UserID"];
 
                 db.StudyGroups.Add(studyGroup);
@@ -182,7 +180,7 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            // check if the current logged in user is the creator
+            // only the creator can edit
             int currentUserID = (int)Session["UserID"];
             if (studyGroup.CreatorUserID != currentUserID)
             {
@@ -248,7 +246,7 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            //check if the current user is the creator
+            // only the creator can delete
             int currentUserID = (int)Session["UserID"];
             if (studyGroup.CreatorUserID != currentUserID)
             {
@@ -256,7 +254,7 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Unauthorized", "Home");
             }
 
-            // check for upcoming sessions
+            // cannot be deleted if there are upcoming sessions
             var upcomingSessions = studyGroup.Sessions
                 .Where(s => !s.IsFinished)
                 .ToList();
@@ -284,7 +282,7 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            //check if the current user is the creator
+    
             int currentUserID = (int)Session["UserID"];
             if (studyGroup.CreatorUserID != currentUserID)
             {
@@ -292,7 +290,7 @@ namespace StudyGroups.Controllers
                 return RedirectToAction("Unauthorized", "Home");
             }
 
-            // check for upcoming sessions
+          
             var upcomingSessions = studyGroup.Sessions
                 .Where(s => !s.IsFinished)
                 .ToList();
@@ -332,10 +330,10 @@ namespace StudyGroups.Controllers
                 SubjectID = subject.SubjectID
             };
 
-            // Pass the subject details to the view
+          
             ViewBag.SubjectTitle = subject.Title;
             ViewBag.SubjectID = subject.SubjectID;
-            /// flag so that we can use the same create view
+            // flag to disable the subject value in the same create form
             ViewBag.IsSubjectLocked = true;
 
             return View("Create", studyGroup);
@@ -350,7 +348,7 @@ namespace StudyGroups.Controllers
         {
             if (ModelState.IsValid)
             {
-                // The creator is the current logged in user
+               
                 studyGroup.CreatorUserID = (int)Session["UserID"];
 
                 db.StudyGroups.Add(studyGroup);
@@ -360,7 +358,6 @@ namespace StudyGroups.Controllers
             }
 
 
-            // Reload subject info if validation fails
             Subject subject = db.Subjects.Find(studyGroup.SubjectID);
             if (subject != null)
             {
@@ -391,7 +388,7 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            // check if the user is already a member or the creator
+         
             if (studyGroup.CreatorUserID == currentUserID ||
                 (studyGroup.Members != null && studyGroup.Members.Any(m => m.UserID == currentUserID)))
             {
@@ -426,7 +423,7 @@ namespace StudyGroups.Controllers
                 return HttpNotFound();
             }
 
-            // check if the user is a member
+    
             var user = studyGroup.Members.FirstOrDefault(m => m.UserID == currentUserID);
             if (user != null)
             {

@@ -12,7 +12,7 @@
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            @* Display success/error messages *@
+    
             @if (TempData["Success"] != null)
             {
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -36,7 +36,7 @@
                 }
             </div>
 
-            @* Search and Filter Form *@
+         
             @using (Html.BeginForm("Index", "Sessions", FormMethod.Get))
             {
                 <div class="mb-4">
@@ -67,7 +67,7 @@
                 </div>
             }
 
-            @* Results Summary *@
+      
             @if (totalItems > 0)
             {
                 <div class="mb-3">
@@ -75,7 +75,7 @@
                 </div>
             }
 
-            @* Sessions Table *@
+         
             @if (totalItems > 0)
             {
                 <div class="card shadow-sm border-0">
@@ -201,12 +201,12 @@
                 </div>
             }
 
-            @* Pagination *@
+       
             @if (totalPages > 1)
             {
                 <nav aria-label="Page navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
-                        @* Previous Button *@
+                     
                         <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                             @if (currentPage == 1)
                             {
@@ -218,7 +218,7 @@
                             }
                         </li>
 
-                        @* Page Numbers *@
+                      
                         @for (int i = 1; i <= totalPages; i++)
                         {
                             <li class="page-item @(i == currentPage ? "active" : "")">
@@ -226,7 +226,7 @@
                             </li>
                         }
 
-                        @* Next Button *@
+          
                         <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
                             @if (currentPage == totalPages)
                             {
@@ -241,7 +241,7 @@
                 </nav>
             }
 
-            @* Empty State *@
+
             @if (totalItems == 0)
             {
                 <div class="text-center py-5">

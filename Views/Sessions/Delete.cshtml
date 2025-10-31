@@ -70,7 +70,6 @@
                     {
                         @Html.AntiForgeryToken()
                         <div class="d-flex gap-2">
-                            @* Disable delete button if there's an error *@
                             @if (TempData["CannotDelete"] != null)
                             {
                                 <button type="button" class="btn btn-danger" disabled>Delete</button>

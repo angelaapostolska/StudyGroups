@@ -23,14 +23,14 @@ namespace StudyGroups.DAL
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure User -> StudyGroup (Creator) relationship
+            // User -> StudyGroup (Creator) relationship
             modelBuilder.Entity<User>()
                 .HasMany(u => u.CreatedStudyGroups)
                 .WithRequired(sg => sg.Creator)
                 .HasForeignKey(sg => sg.CreatorUserID)
                 .WillCascadeOnDelete(false);
 
-            // Configure User <-> StudyGroup (Members) Many-to-Many
+            // User <-> StudyGroup (Members) Many-to-Many
             modelBuilder.Entity<User>()
                 .HasMany(u => u.JoinedStudyGroups)
                 .WithMany(sg => sg.Members)
@@ -41,14 +41,14 @@ namespace StudyGroups.DAL
                     m.MapRightKey("StudyGroupID");
                 });
 
-            // Configure User -> Session (Creator) relationship
+            // User -> Session (Creator) relationship
             modelBuilder.Entity<User>()
                 .HasMany(u => u.CreatedSessions)
                 .WithRequired(s => s.Creator)
                 .HasForeignKey(s => s.CreatorUserID)
                 .WillCascadeOnDelete(false);
 
-            // Configure User <-> Session (Attendees) Many-to-Many
+            // User <-> Session (Attendees) Many-to-Many
             modelBuilder.Entity<User>()
                 .HasMany(u => u.AttendingSessions)
                 .WithMany(s => s.Attendees)
@@ -59,7 +59,7 @@ namespace StudyGroups.DAL
                     m.MapRightKey("SessionID");
                 });
 
-            // Configure StudyGroup -> Subject (One-to-Many)
+            // StudyGroup -> Subject (One-to-Many)
             modelBuilder.Entity<StudyGroup>()
                 .HasRequired(sg => sg.Subject)
                 .WithMany(s => s.StudyGroups)

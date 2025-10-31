@@ -12,7 +12,6 @@
     <div class="row justify-content-center">
         <div class="col-lg-10">
 
-            @* Display success/error messages *@
             @if (TempData["Success"] != null)
             {
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -162,7 +161,7 @@
 
             </div>
 
-            @* Attendees List *@
+        
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">Attendees</h5>
@@ -210,7 +209,7 @@
                 </div>
             </div>
 
-            @* Rating Section *@
+    
             @if (ViewBag.HasSessionEnded)
             {
                 <div class="card shadow-sm border-0 mb-4">
@@ -266,7 +265,7 @@
                 </div>
             }
 
-            @* Display existing ratings *@
+         
             @if (Model.Ratings != null && Model.Ratings.Any())
             {
                 <div class="card shadow-sm border-0">
@@ -304,7 +303,7 @@
                                                 <span class="text-muted ms-1">(@rating.Score/5)</span>
                                             </td>
                                             <td>
-                                                @* Only show delete button if current user created this rating *@
+                                              
                                                 @if (currentUserID.HasValue && rating.UserID == currentUserID.Value)
                                                 {
                                                     using (Html.BeginForm("Delete", "Ratings", new { id = rating.RatingID }, FormMethod.Post, new { @class = "d-inline" }))
